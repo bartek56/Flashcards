@@ -1,0 +1,37 @@
+<resources>
+    <string name="app_name">Fiszki</string>
+    <string name="action_settings">Ustawienia</string>
+    <string name="action_aboutMe">O mnie</string>
+    <string name="action_deleteWord">Usuń słówko</string>
+    <string name="action_addWord">Dodaj słówko</string>
+    <string name="action_editWord">Edytuj słówko</string>
+    <string name="action_addCategory">Dodaj kategorie</string>
+    <string name="englishWord">Słowo w języku angielskim</string>
+    <string name="polishWord">Słowo w języku polskim</string>
+    <string name="polishSentence">Zdanie w języku polskim</string>
+    <string name="englishSentence">Zdanie w języku angielskim</string>
+    <string name="show">Pokaż</string>
+    <string name="add">Dodaj</string>
+    <string name="category">Kategoria</string>
+    <string name="delete">Usuń</string>
+    <string name="number">Numer</string>
+    <string name="edit">Edytuj</string>
+    <string name="change">Zmień</string>
+    <string name="random">Losowo</string>
+    <string name="known">Umiem</string>
+    <string name="showKnownWord">Pokaż znane słówka</string>
+    <string name="teachType">Sposób nauki</string>
+    <string name="plEng">Pl-Eng</string>
+    <string name="engPl">Eng-Pl</string>
+    <string name="deleteWord">Czy usunąć słowo?</string>
+    <string name="readFromGoogle">Wczytaj dane z Google</string>
+    <string name="writeToGoogle">Zapisz dane na Google</string>
+    <string name="language">Język</string>
+
+    <string name="english">angielski</string>
+    <string name="french">francuski</string>
+    <string name="german">niemiecki</string>
+
+    <string name="section_format">Hello World from section: %1$d</string>
+
+</resources>

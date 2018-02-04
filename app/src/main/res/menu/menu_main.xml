@@ -1,0 +1,66 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.example.bartosz.fiszki.MainActivity">
+    <item android:id="@+id/action_addWord"
+        android:title="@string/action_addWord"
+        android:orderInCategory="100"
+        app:showAsAction="never" />
+
+    <item android:id="@+id/action_editWord"
+        android:title="@string/action_editWord"
+        android:orderInCategory="100"
+        app:showAsAction="never" />
+
+    <item android:id="@+id/action_addCategory"
+        android:title="@string/action_addCategory"
+        android:orderInCategory="100"
+        app:showAsAction="never" />
+
+
+    <item android:id="@+id/action_settings"
+        android:title="@string/action_settings"
+        android:orderInCategory="100"
+        app:showAsAction="never" />
+
+    <item android:id="@+id/action_language"
+        android:title="@string/language"
+        android:orderInCategory="100"
+        app:showAsAction="never">
+
+        <menu>
+            <item android:id="@+id/action_englanguage"
+                android:title="@string/english"
+                android:orderInCategory="100"
+                app:showAsAction="never" />
+
+            <item android:id="@+id/action_frlanguage"
+                android:title="@string/french"
+                android:orderInCategory="100"
+                app:showAsAction="never" />
+
+            <item android:id="@+id/action_delanguage"
+                android:title="@string/german"
+                android:orderInCategory="100"
+                app:showAsAction="never"/>
+
+        </menu>
+
+        </item>
+
+    <item android:id="@+id/action_readDataFromGoogle"
+        android:title="@string/readFromGoogle"
+        android:orderInCategory="100"
+        app:showAsAction="never" />
+
+    <item android:id="@+id/action_writeDataToGoogle"
+        android:title="@string/writeToGoogle"
+        android:orderInCategory="100"
+        app:showAsAction="never" />
+
+
+    <item android:id="@+id/action_aboutMe"
+        android:title="@string/action_aboutMe"
+        android:orderInCategory="100"
+        app:showAsAction="never" />
+</menu>
