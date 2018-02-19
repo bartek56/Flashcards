@@ -7,6 +7,9 @@ import android.database.sqlite.SQLiteDatabase;
 
 import com.example.bartosz.fiszki.DataBase.SQLite.Tables.Flashcard;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by bartosz on 12.03.17.
  */
@@ -147,6 +150,63 @@ public class FlashcardHelper extends Database {
 
         return 0;
     }
+
+    public List<String> GetAllFlashcards()
+    {
+        List<String> list = new ArrayList<>();
+
+        List<String> categoryList = GetCategoriesList();
+
+        for (String category: categoryList)
+        {
+            String tableName = category.replace(" ","_");
+            SQLiteDatabase db = getReadableDatabase();
+            String[] columns = {"idFlashcard", "known"};
+            Cursor cursor;
+
+            cursor = db.query(tableName, columns,null, null, null, null, null, null);
+
+            if (cursor.getCount()>0)
+            {
+                while(cursor.moveToNext())
+                {
+                    //idKnownWords.add(cursor.getInt(0));
+                    Flashcard flashcard = GetFlashcard(cursor.getInt(0));
+                    String flachcard = category + ";" +
+                            flashcard.getEngWord() + ";"+
+                            flashcard.getPlWord() + ";"+
+                            flashcard.getEngSentence() + ";"+
+                            flashcard.getPlSentence() + ";"+
+                            cursor.getInt(1);
+                    list.add(flachcard);
+                }
+            }
+        }
+
+        return list;
+    }
+
+
+    public List<String> GetCategoriesList() {
+        List<String> categoryList = new ArrayList<String>();
+
+        String[] columns = {"idFlashcard"};
+        SQLiteDatabase db = getReadableDatabase();
+
+        Cursor cursor = db.rawQuery("SELECT name FROM sqlite_master WHERE type='table'", null);
+
+        while(cursor.moveToNext())
+        {
+            if(!cursor.getString(0).equals("android_metadata") && !cursor.getString(0).equals("sqlite_sequence") && !cursor.getString(0).equals("flashcard") ) {
+                String category = cursor.getString(0).replace("_", " ");
+                categoryList.add(category);
+            }
+
+        }
+
+        return categoryList;
+    }
+
 
     public void DeleteFlashcard(int id)
     {

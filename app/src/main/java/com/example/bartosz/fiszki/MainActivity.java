@@ -63,6 +63,9 @@ public class MainActivity extends AppCompatActivity
     public static final String engLanguageDatabase = "flashcardsEng.db";
     public static final String deLanguageDatabase = "flashcardsDe.db";
     public static final String frLanguageDatabase = "flashcardsFr.db";
+    public static final String engLanguageCsvFile = "flashcardsEng.csv";
+    public static final String deLanguageCsvFile = "flashcardsDe.csv";
+    public static final String frLanguageCsvFile = "flashcardsFr.csv";
     public static final String languageModeEngPl = "Eng-Pl";
     public static final String languageModePlEng = "Pl-Eng";
     public static int randomNumbers[];
@@ -144,6 +147,19 @@ public class MainActivity extends AppCompatActivity
         };
 
         googleDriveHelper.setHandler(handler);
+
+    }
+
+    public static String getActualCsvFile()
+    {
+        String actualCsvFile=null;
+        switch (MainActivity.actualLanguageDataBase)
+        {
+            case engLanguageDatabase: actualCsvFile= engLanguageCsvFile; break;
+            case deLanguageDatabase: actualCsvFile= deLanguageCsvFile;break;
+            case frLanguageDatabase: actualCsvFile= frLanguageCsvFile;break;
+        }
+        return actualCsvFile;
 
     }
 
@@ -316,15 +332,13 @@ public class MainActivity extends AppCompatActivity
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 builder.setTitle("Czy chcesz wczytać dane z Google Drive?");
 
-
-
                 builder.setPositiveButton("TAK", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
                         progressDialog = ProgressDialog.show(MainActivity.this, "Odczyt z Google Drive", "Wczytywanie");
                         new Thread(new Runnable() {
                             @Override
                             public void run() {
-                                googleDriveHelper.ReadDataFromGoogleDrive(MainActivity.actualLanguageDataBase);
+                                googleDriveHelper.ReadDataFromGoogleDrive(getActualCsvFile());
                             }
                         }).start();
 
@@ -341,6 +355,13 @@ public class MainActivity extends AppCompatActivity
 
             case R.id.action_writeDataToGoogle: {
 
+                List <String> allFlashcard = dbFlashcard.GetAllFlashcards();
+
+                for (String s: allFlashcard)
+                {
+                    System.out.println(s);
+                }
+
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 builder.setTitle("Czy chcesz zapisać dane z Google Drive?");
                 builder.setPositiveButton("TAK", new DialogInterface.OnClickListener() {
@@ -351,7 +372,7 @@ public class MainActivity extends AppCompatActivity
                             @Override
                             public void run()
                             {
-                                googleDriveHelper.SaveDateOnGoogleDrive(MainActivity.actualLanguageDataBase);
+                                googleDriveHelper.SaveDateOnGoogleDrive(getActualCsvFile());
                             }
                         }.start();
 
@@ -362,6 +383,10 @@ public class MainActivity extends AppCompatActivity
 
                 AlertDialog dialog = builder.create();
                 dialog.show();
+
+
+
+
 
                 break;
             }

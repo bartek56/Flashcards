@@ -18,9 +18,7 @@ public class CategoryHelper extends Database {
 
     public CategoryHelper(Context context,String DatabaseFileName) {
         super(context,DatabaseFileName);
-
     }
-
 
     public void SetKnownWord(int id,boolean known)
     {
@@ -49,25 +47,8 @@ public class CategoryHelper extends Database {
         return cursor.getCount();
     }
 
-
-/*
-    public int CountFlashcard(String category, boolean showAllWord){
-
-
-        SQLiteDatabase db = getWritableDatabase();
-        Cursor cursor;
-
-        if(showAllWord)
-            cursor = db.rawQuery("SELECT id FROM "+category+" ", null);
-        else
-            cursor = db.rawQuery("SELECT id FROM "+category+" WHERE known=0", null);
-
-
-        return cursor.getCount();
-    }
-*/
-
-    public List<Integer> IdFlashcard(String category, boolean allWords) {
+    public List<Integer> IdFlashcard(String category, boolean allWords)
+    {
 
 
         List<Integer> idKnownWords =null;
@@ -100,37 +81,7 @@ public class CategoryHelper extends Database {
         return null;
 
     }
-/*
-    public int[] IdFlashcard(String category, boolean allWords) {
 
-        int[] idKnownWords=null;
-
-        SQLiteDatabase db = getReadableDatabase();
-        Cursor cursor;
-
-        if(allWords)
-            cursor = db.rawQuery("SELECT id FROM "+category+" ", null);
-        else
-            cursor = db.rawQuery("SELECT id FROM "+category+" WHERE known=0", null);
-
-
-        if (cursor.getCount()>0)
-        {
-            idKnownWords = new int[cursor.getCount()];
-
-            int i=0;
-            while(cursor.moveToNext())
-            {
-                idKnownWords[i]=cursor.getInt(0);
-                i++;
-            }
-
-
-        }
-        return idKnownWords;
-
-    }
-*/
     public void CreateCategory(String category) {
 
         SQLiteDatabase db = getWritableDatabase();

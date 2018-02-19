@@ -35,6 +35,8 @@ import com.google.android.gms.drive.query.Query;
 import com.google.android.gms.drive.query.SearchableField;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -44,6 +46,14 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.util.List;
+
+import static com.example.bartosz.fiszki.MainActivity.deLanguageCsvFile;
+import static com.example.bartosz.fiszki.MainActivity.deLanguageDatabase;
+import static com.example.bartosz.fiszki.MainActivity.engLanguageCsvFile;
+import static com.example.bartosz.fiszki.MainActivity.engLanguageDatabase;
+import static com.example.bartosz.fiszki.MainActivity.frLanguageCsvFile;
+import static com.example.bartosz.fiszki.MainActivity.frLanguageDatabase;
 
 /**
  * Created by bbrzozowski on 2017-08-25.
@@ -200,6 +210,19 @@ public class GoogleDriveHelper implements GoogleApiClient.ConnectionCallbacks,
         }
     };
 
+    public String getActualDatabse()
+    {
+        String actualDatabase=null;
+        switch (fileName)
+        {
+            case engLanguageCsvFile: actualDatabase= engLanguageDatabase; break;
+            case deLanguageCsvFile: actualDatabase= deLanguageDatabase;break;
+            case frLanguageCsvFile: actualDatabase= frLanguageDatabase;break;
+        }
+        return actualDatabase;
+
+    }
+
     private void DeleteFile(DriveFile file) {
 
         file.delete(mGoogleApiClient).setResultCallback(deleteCallback);
@@ -312,8 +335,6 @@ public class GoogleDriveHelper implements GoogleApiClient.ConnectionCallbacks,
                     break;
                 }
 
-
-
             }
             if(!fileExist)
             {
@@ -335,15 +356,24 @@ public class GoogleDriveHelper implements GoogleApiClient.ConnectionCallbacks,
             }
             try {
 
+                //File sqllitefile = activity.getDatabasePath(fileName);
+                //InputStream is = new FileInputStream(sqllitefile);
 
-
-                //Writer writer = new OutputStreamWriter(fileOutputStream);
-
-
-                File sqllitefile = activity.getDatabasePath(fileName);
+                List<String> list = MainActivity.dbFlashcard.GetAllFlashcards();
 
                 OutputStream oos = result.getDriveContents().getOutputStream();
-                InputStream is = new FileInputStream(sqllitefile);
+
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+                for (String line : list) {
+                    baos.write(line.getBytes());
+                    baos.write('\n');
+                }
+
+                byte[] bytes = baos.toByteArray();
+
+
+                InputStream is = new ByteArrayInputStream(bytes);
 
                 byte[] buf = new byte[4096];
                 int c;
@@ -353,6 +383,7 @@ public class GoogleDriveHelper implements GoogleApiClient.ConnectionCallbacks,
                 }
                 oos.flush();
                 oos.close();
+
 
                 result.getDriveContents().commit(mGoogleApiClient, null).setResultCallback(new ResultCallback<Status>() {
                     @Override
@@ -371,97 +402,7 @@ public class GoogleDriveHelper implements GoogleApiClient.ConnectionCallbacks,
         }
     };
 
-/*
-    private ResultCallback<DriveApi.DriveContentsResult> saveInGoogleDriveResultCallBack = new ResultCallback<DriveApi.DriveContentsResult>() {
-        @Override
-        public void onResult(@NonNull DriveApi.DriveContentsResult result) {
-            if (!result.getStatus().isSuccess()) {
-                Log.e(TAG, "Error with Save in Google Drive");
-                Toast.makeText(activity, "error with save in Google Drive", Toast.LENGTH_LONG).show();
-                return;
-            }
-            try {
-                ParcelFileDescriptor parcelFileDescriptor = result.getDriveContents().getParcelFileDescriptor();
-                FileInputStream fileInputStream = new FileInputStream(parcelFileDescriptor
-                        .getFileDescriptor());
-                // Read to the end of the file.
-                fileInputStream.read(new byte[fileInputStream.available()]);
-                //System.out.println("file: "+fileInputStream.read());
-                // Append to the file.
-                FileOutputStream fileOutputStream = new FileOutputStream(parcelFileDescriptor
-                        .getFileDescriptor());
-                Writer writer = new OutputStreamWriter(fileOutputStream);
 
-
-                File sqllitefile = activity.getDatabasePath(fileName);
-
-                OutputStream oos = result.getDriveContents().getOutputStream();
-                InputStream is = new FileInputStream(sqllitefile);
-                byte[] buf = new byte[4096];
-                int c;
-                while ((c = is.read(buf, 0, buf.length)) > 0) {
-                    oos.write(buf, 0, c);
-                    oos.flush();
-                }
-                //oos.flush();
-                writer.close();
-
-                result.getDriveContents().commit(mGoogleApiClient, null).setResultCallback(new ResultCallback<Status>() {
-                    @Override
-                    public void onResult(Status result) {
-                        if (result.isSuccess()) {
-                            Log.v(TAG, "Successfull saved in Google Drive");
-                            Toast.makeText(activity, "Successfull saved in Google Drive", Toast.LENGTH_LONG).show();
-                        }
-                    }
-                });
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    };
-*/
-/*
-    private ResultCallback<DriveApi.DriveContentsResult> readFromGoogleDriveResultCallBack = new ResultCallback<DriveApi.DriveContentsResult>() {
-
-
-        @Override
-        public void onResult(@NonNull DriveApi.DriveContentsResult result) {
-            if (!result.getStatus().isSuccess()) {
-                Log.e(TAG, "Error with Read file from Google Drive");
-                Toast.makeText(activity, "Error with Read file from Google Drive", Toast.LENGTH_LONG).show();
-                return;
-            }
-            Log.d(TAG,"Reading data from Google Drive");
-
-            MainActivity.dbFlashcard.DeleteAllFlashcards();
-            File file = activity.getDatabasePath(FILENAME);
-
-
-                try {
-                OutputStream oos = new FileOutputStream(file);
-                Writer writer = new OutputStreamWriter(oos);
-                InputStream is = result.getDriveContents().getInputStream();
-
-                byte[] buf = new byte[4096];
-                int c;
-                while ((c = is.read(buf, 0, buf.length)) > 0) {
-                    oos.write(buf, 0, c);
-                    oos.flush();
-                }
-                writer.close();
-
-
-                SQLiteDatabase.openOrCreateDatabase(file, null);
-                    Toast.makeText(activity, "Wczytano dane z Google Drive", Toast.LENGTH_LONG).show();
-                Log.d(TAG,"Wczytano dane z Google Drive");
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    };
-*/
 private ResultCallback<DriveApi.DriveContentsResult> readFromGoogleDriveResultCallBack = new ResultCallback<DriveApi.DriveContentsResult>() {
 
 
@@ -489,6 +430,7 @@ private ResultCallback<DriveApi.DriveContentsResult> readFromGoogleDriveResultCa
             int c;
             while ((c = is.read(buf)) > 0) {
 
+
                 oos.write(buf);
 
             }
@@ -509,6 +451,7 @@ private ResultCallback<DriveApi.DriveContentsResult> readFromGoogleDriveResultCa
     }
 };
 
+
     private ResultCallback<DriveApi.DriveContentsResult> contentsOpenedCallback =
             new ResultCallback<DriveApi.DriveContentsResult>() {
                 @Override
@@ -521,13 +464,11 @@ private ResultCallback<DriveApi.DriveContentsResult> readFromGoogleDriveResultCa
 
                     DriveContents contents = result.getDriveContents();
 
-
                     BufferedReader reader = new BufferedReader(new InputStreamReader(contents.getInputStream()));
                     StringBuilder builder = new StringBuilder();
                     String line;
                     try
                     {
-
                         while ((line = reader.readLine()) != null) {
                             builder.append(line);
                         }
