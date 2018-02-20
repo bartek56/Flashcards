@@ -177,7 +177,7 @@ public class FlashcardHelper extends Database {
                             flashcard.getPlWord() + ";"+
                             flashcard.getEngSentence() + ";"+
                             flashcard.getPlSentence() + ";"+
-                            cursor.getInt(1);
+                            cursor.getInt(1) + ";" +"\n";
                     list.add(flachcard);
                 }
             }

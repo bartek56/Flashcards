@@ -5,6 +5,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 /**
  * Created by bartosz on 26.02.17.
@@ -13,6 +14,8 @@ import android.database.sqlite.SQLiteOpenHelper;
 public abstract class Database extends SQLiteOpenHelper {
 
     private String file;
+    private static final String TAG = "Database";
+
     public Database(Context context, String FILENAME) {
         super(context, FILENAME,null,1);
         file = FILENAME;
@@ -56,7 +59,8 @@ public abstract class Database extends SQLiteOpenHelper {
                             "known boolean);"+
                             "");
 
-            System.out.println("created tables "+file);
+
+            Log.d(TAG,"created tables "+file);
 
         }
         catch (SQLiteException ex)

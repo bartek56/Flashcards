@@ -355,13 +355,14 @@ public class MainActivity extends AppCompatActivity
 
             case R.id.action_writeDataToGoogle: {
 
+                /*
                 List <String> allFlashcard = dbFlashcard.GetAllFlashcards();
 
                 for (String s: allFlashcard)
                 {
                     System.out.println(s);
                 }
-
+*/
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 builder.setTitle("Czy chcesz zapisać dane z Google Drive?");
                 builder.setPositiveButton("TAK", new DialogInterface.OnClickListener() {

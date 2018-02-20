@@ -367,7 +367,7 @@ public class GoogleDriveHelper implements GoogleApiClient.ConnectionCallbacks,
 
                 for (String line : list) {
                     baos.write(line.getBytes());
-                    baos.write('\n');
+                    //baos.write('\n');
                 }
 
                 byte[] bytes = baos.toByteArray();
@@ -375,7 +375,7 @@ public class GoogleDriveHelper implements GoogleApiClient.ConnectionCallbacks,
 
                 InputStream is = new ByteArrayInputStream(bytes);
 
-                byte[] buf = new byte[4096];
+                byte[] buf = new byte[512];
                 int c;
                 while ((c = is.read(buf)) > 0) {
                     oos.write(buf, 0, c);
@@ -416,30 +416,48 @@ private ResultCallback<DriveApi.DriveContentsResult> readFromGoogleDriveResultCa
         }
         Log.d(TAG,"Reading data from Google Drive");
 
-        MainActivity.dbFlashcard.DeleteAllFlashcards();
-        File file = activity.getDatabasePath(fileName);
+        //MainActivity.dbFlashcard.DeleteAllFlashcards();
+        //File file = activity.getDatabasePath(getActualDatabse());
 
 
         try {
-            OutputStream oos = new FileOutputStream(file);
+            //OutputStream oos = new FileOutputStream(file);
             //Writer writer = new OutputStreamWriter(oos);
             InputStream is = result.getDriveContents().getInputStream();
 
-
-            byte[] buf = new byte[1024];
+            byte[] buf = new byte[1];
             int c;
-            while ((c = is.read(buf)) > 0) {
+            String allText="";
+            int i=0;
+            //while ((c = is.read(buf)) > 0) {
+            while (is.read(buf)>0) {
+                //oos.write(buf);
+                String text = new String(buf);
+                //System.out.println(buf.length);
+                //System.out.println("bbb");
 
-
-                oos.write(buf);
-
+                if(text.equals(";"))
+                {
+                    i++;
+                    if(i==6)
+                    {
+                        i=0;
+                        System.out.println(allText);
+                        allText="";
+                    }
+                }
+                else
+                {
+                    allText+=text;
+                }
             }
-            oos.flush();
-            oos.close();
+            System.out.println();
+            //oos.flush();
+            //oos.close();
             is.close();
 
 
-            SQLiteDatabase.openOrCreateDatabase(file, null);
+            //SQLiteDatabase.openOrCreateDatabase(file, null);
             Toast.makeText(activity, "Wczytano dane z Google Drive", Toast.LENGTH_LONG).show();
             Log.d(TAG,"Wczytano dane z Google Drive");
 
