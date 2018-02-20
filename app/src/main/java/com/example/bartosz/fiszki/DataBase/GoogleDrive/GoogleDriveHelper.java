@@ -274,6 +274,7 @@ public class GoogleDriveHelper implements GoogleApiClient.ConnectionCallbacks,
     {
         Drive.DriveApi.query(mGoogleApiClient, QuerySearchFile())
                 .setResultCallback(resultCal);
+        System.out.println("dfsfd");
     }
 
 
