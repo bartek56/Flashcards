@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
 import com.example.bartosz.fiszki.DataBase.SQLite.Tables.Flashcard;
+import com.example.bartosz.fiszki.MainActivity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -101,7 +102,6 @@ public class FlashcardHelper extends Database {
 
     }
 
-
     public void SetFlashcard(Flashcard flashcard)
     {
         SQLiteDatabase db = getWritableDatabase();
@@ -111,6 +111,21 @@ public class FlashcardHelper extends Database {
         values.put("engSentence",flashcard.getEngSentence());
         values.put("plSentence",flashcard.getPlSentence());
         db.update("flashcard",values,"id="+flashcard.getId(),null);
+    }
+
+    public int AddFlashcardIfNotExist(Flashcard flashcard)
+    {
+        if(GetIdEnglishWord(flashcard.getEngWord())==0)
+        {
+            AddFlashcard(flashcard);
+
+            int id =GetIdEnglishWord(flashcard.getEngWord());
+
+            return id;
+
+
+        }
+        return 0;
     }
 
     public Flashcard GetFlashcardFromCategory(String category, int id) {
@@ -186,7 +201,6 @@ public class FlashcardHelper extends Database {
         return list;
     }
 
-
     public List<String> GetCategoriesList() {
         List<String> categoryList = new ArrayList<String>();
 
@@ -206,7 +220,6 @@ public class FlashcardHelper extends Database {
 
         return categoryList;
     }
-
 
     public void DeleteFlashcard(int id)
     {

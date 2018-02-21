@@ -15,6 +15,7 @@ import android.widget.Toast;
 
 import com.example.bartosz.fiszki.DataBase.SQLite.CategoryHelper;
 import com.example.bartosz.fiszki.DataBase.SQLite.FlashcardHelper;
+import com.example.bartosz.fiszki.DataBase.SQLite.Tables.Flashcard;
 import com.example.bartosz.fiszki.MainActivity;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
@@ -429,29 +430,44 @@ private ResultCallback<DriveApi.DriveContentsResult> readFromGoogleDriveResultCa
             int c;
             String allText="";
             int i=0;
+
+            Flashcard flashcard = new Flashcard(0,null,null,null,null);
+            String category="";
             //while ((c = is.read(buf)) > 0) {
             while (is.read(buf)>0) {
                 //oos.write(buf);
                 String text = new String(buf);
-                //System.out.println(buf.length);
-                //System.out.println("bbb");
 
                 if(text.equals(";"))
                 {
                     i++;
-                    if(i==6)
+
+                    switch (i)
                     {
-                        i=0;
-                        System.out.println(allText);
-                        allText="";
+                        case 1: category = allText; MainActivity.dbCategory.CreateCategory(category);  break;
+                        case 2: flashcard.setEngWord(allText);  break;
+                        case 3: flashcard.setPlWord(allText); break;
+                        case 4: flashcard.setEngSentence(allText); break;
+                        case 5: flashcard.setPlSentence(allText); break;
+                        case 6:
+                        {
+                            i=0;
+                            int id = MainActivity.dbFlashcard.AddFlashcardIfNotExist(flashcard);
+                            if(id!=0)
+                            {
+                                MainActivity.dbCategory.AddFlashcardToCategory(category,id);
+                            }
+                            break;
+                        }
                     }
+                    allText="";
                 }
                 else
                 {
                     allText+=text;
                 }
             }
-            System.out.println();
+
             //oos.flush();
             //oos.close();
             is.close();

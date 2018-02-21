@@ -88,7 +88,7 @@ public class CategoryHelper extends Database {
         String tableName = category.replace(" ","_");
 
         db.execSQL(
-                "create table "+tableName+"(" +
+                "create table if not exists "+tableName+"(" +
                         "id integer primary key autoincrement," +
                         "idFlashcard integer,"+
                         "known boolean);"+
