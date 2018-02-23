@@ -187,12 +187,12 @@ public class FlashcardHelper extends Database {
                 {
                     //idKnownWords.add(cursor.getInt(0));
                     Flashcard flashcard = GetFlashcard(cursor.getInt(0));
-                    String flachcard = category + ";" +
-                            flashcard.getEngWord() + ";"+
-                            flashcard.getPlWord() + ";"+
-                            flashcard.getEngSentence() + ";"+
-                            flashcard.getPlSentence() + ";"+
-                            cursor.getInt(1) + ";" +"\n";
+                    String flachcard = category + "~" +
+                            flashcard.getEngWord() + "~"+
+                            flashcard.getPlWord() + "~"+
+                            flashcard.getEngSentence() + "~"+
+                            flashcard.getPlSentence() + "~"+
+                            cursor.getInt(1) + "~" +"\n";
                     list.add(flachcard);
                 }
             }

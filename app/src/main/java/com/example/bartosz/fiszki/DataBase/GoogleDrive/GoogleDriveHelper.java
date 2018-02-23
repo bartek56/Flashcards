@@ -47,6 +47,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.nio.charset.Charset;
 import java.util.List;
 
 import static com.example.bartosz.fiszki.MainActivity.deLanguageCsvFile;
@@ -367,7 +368,7 @@ public class GoogleDriveHelper implements GoogleApiClient.ConnectionCallbacks,
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
                 for (String line : list) {
-                    baos.write(line.getBytes());
+                    baos.write(line.getBytes("UTF-8"));
                     //baos.write('\n');
                 }
 
@@ -424,21 +425,65 @@ private ResultCallback<DriveApi.DriveContentsResult> readFromGoogleDriveResultCa
         try {
             //OutputStream oos = new FileOutputStream(file);
             //Writer writer = new OutputStreamWriter(oos);
-            InputStream is = result.getDriveContents().getInputStream();
+            //InputStream is = result.getDriveContents().getInputStream();
 
-            byte[] buf = new byte[1];
-            int c;
+            BufferedReader reader = new BufferedReader(new InputStreamReader(result.getDriveContents().getInputStream()));
             String allText="";
             int i=0;
 
             Flashcard flashcard = new Flashcard(0,null,null,null,null);
             String category="";
-            //while ((c = is.read(buf)) > 0) {
-            while (is.read(buf)>0) {
-                //oos.write(buf);
-                String text = new String(buf);
 
-                if(text.equals(";"))
+
+            StringBuilder builder = new StringBuilder();
+            String line;
+
+
+            while ((line = reader.readLine()) != null) {
+                builder.append(line).append("\n");
+                for (char ch:line.toCharArray()) {
+                    if(ch=='~')
+                    {
+                        i++;
+
+                        switch (i)
+                        {
+                            case 1: category = allText; MainActivity.dbCategory.CreateCategory(category);  break;
+                            case 2: flashcard.setEngWord(allText);  break;
+                            case 3: flashcard.setPlWord(allText); break;
+                            case 4: flashcard.setEngSentence(allText); break;
+                            case 5: flashcard.setPlSentence(allText); break;
+                            case 6:
+                            {
+                                i=0;
+                                int id = MainActivity.dbFlashcard.AddFlashcardIfNotExist(flashcard);
+
+                                if(id!=0)
+                                {
+                                    MainActivity.dbCategory.AddFlashcardToCategory(category,id);
+                                }
+
+                                break;
+                            }
+                        }
+                        allText="";
+                    }
+                    else
+                    {
+                        allText+=ch;
+                    }
+                }
+            }
+
+            reader.close();
+            //while ((c = is.read(buf)) > 0) {
+/*
+            while (is.read(buf)>0) {
+            //while(reader.readLine())
+                //oos.write(buf);
+                String text = new String(buf,"UTF-8");
+
+                if(text.equals("~"))
                 {
                     i++;
 
@@ -453,10 +498,13 @@ private ResultCallback<DriveApi.DriveContentsResult> readFromGoogleDriveResultCa
                         {
                             i=0;
                             int id = MainActivity.dbFlashcard.AddFlashcardIfNotExist(flashcard);
+                            System.out.println(flashcard.getEngSentence()+" " +flashcard.getPlSentence() + " "+flashcard.getEngWord()+" "+flashcard.getPlWord());
+
                             if(id!=0)
                             {
                                 MainActivity.dbCategory.AddFlashcardToCategory(category,id);
                             }
+
                             break;
                         }
                     }
@@ -468,9 +516,11 @@ private ResultCallback<DriveApi.DriveContentsResult> readFromGoogleDriveResultCa
                 }
             }
 
+            is.close();
+*/
             //oos.flush();
             //oos.close();
-            is.close();
+
 
 
             //SQLiteDatabase.openOrCreateDatabase(file, null);

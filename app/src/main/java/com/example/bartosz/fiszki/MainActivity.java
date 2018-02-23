@@ -63,9 +63,9 @@ public class MainActivity extends AppCompatActivity
     public static final String engLanguageDatabase = "flashcardsEng.db";
     public static final String deLanguageDatabase = "flashcardsDe.db";
     public static final String frLanguageDatabase = "flashcardsFr.db";
-    public static final String engLanguageCsvFile = "flashcardsEng.csv";
-    public static final String deLanguageCsvFile = "flashcardsDe.csv";
-    public static final String frLanguageCsvFile = "flashcardsFr.csv";
+    public static final String engLanguageCsvFile = "flashcardsEng.txt";
+    public static final String deLanguageCsvFile = "flashcardsDe.txt";
+    public static final String frLanguageCsvFile = "flashcardsFr.txt";
     public static final String languageModeEngPl = "Eng-Pl";
     public static final String languageModePlEng = "Pl-Eng";
     public static int randomNumbers[];
