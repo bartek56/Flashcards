@@ -244,9 +244,6 @@ public class GoogleDriveHelper implements GoogleApiClient.ConnectionCallbacks,
 
     public void CreateFileOnGoogleDrive(){
 
-        //final DriveContents driveContents = result.getDriveContents();
-
-
                 MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
                         .setTitle(fileName)
 
@@ -257,7 +254,6 @@ public class GoogleDriveHelper implements GoogleApiClient.ConnectionCallbacks,
                 Drive.DriveApi.getRootFolder(mGoogleApiClient)
                         .createFile(mGoogleApiClient, changeSet, null)
                         .setResultCallback(fileCallback);
-
     }
 
 
@@ -271,9 +267,7 @@ public class GoogleDriveHelper implements GoogleApiClient.ConnectionCallbacks,
 
                 SaveDateOnGoogleDrive(fileName);
             }
-
             return;
-
         }
     };
 
@@ -297,8 +291,7 @@ public class GoogleDriveHelper implements GoogleApiClient.ConnectionCallbacks,
 
     public void OpenFileInGoogleDrive()
     {
-        Drive.DriveApi.query(mGoogleApiClient, QuerySearchFile())
-                .setResultCallback(resultCal);
+        Drive.DriveApi.query(mGoogleApiClient, QuerySearchFile()).setResultCallback(resultCal);
     }
 
 
@@ -357,9 +350,6 @@ public class GoogleDriveHelper implements GoogleApiClient.ConnectionCallbacks,
                 return;
             }
             try {
-
-                //File sqllitefile = activity.getDatabasePath(fileName);
-                //InputStream is = new FileInputStream(sqllitefile);
 
                 List<String> list = MainActivity.dbFlashcard.GetAllFlashcards();
 
@@ -434,13 +424,11 @@ private ResultCallback<DriveApi.DriveContentsResult> readFromGoogleDriveResultCa
             Flashcard flashcard = new Flashcard(0,null,null,null,null);
             String category="";
 
-
-            StringBuilder builder = new StringBuilder();
             String line;
 
 
             while ((line = reader.readLine()) != null) {
-                builder.append(line).append("\n");
+                //builder.append(line).append("\n");
                 for (char ch:line.toCharArray()) {
                     if(ch=='~')
                     {
@@ -457,7 +445,7 @@ private ResultCallback<DriveApi.DriveContentsResult> readFromGoogleDriveResultCa
                             {
                                 i=0;
                                 int id = MainActivity.dbFlashcard.AddFlashcardIfNotExist(flashcard);
-
+                                System.out.println(flashcard.getEngSentence());
                                 if(id!=0)
                                 {
                                     MainActivity.dbCategory.AddFlashcardToCategory(category,id);

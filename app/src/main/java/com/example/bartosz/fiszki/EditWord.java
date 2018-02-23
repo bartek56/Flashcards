@@ -21,7 +21,7 @@ public class EditWord extends AppCompatActivity {
     private EditText etPolishWord;
     private EditText etEnglishSentence;
     private EditText etPolishSentence;
-    private CheckBox cbDeleteWord;
+    //private CheckBox cbDeleteWord;
     private Spinner sCategory;
     private int actualId;
     private String newCategory;
@@ -51,7 +51,7 @@ public class EditWord extends AppCompatActivity {
         etPolishSentence.setText(flashcard.getPlSentence());
 
 
-        cbDeleteWord = (CheckBox) findViewById(R.id.cbDeleteWord);
+        //cbDeleteWord = (CheckBox) findViewById(R.id.cbDeleteWord);
 
         sCategory = (Spinner) findViewById(R.id.sCategory);
         ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, MainActivity.dbCategory.GetCategoriesList());
@@ -64,6 +64,7 @@ public class EditWord extends AppCompatActivity {
     }
 
     public void EditWordButtonOnClick(View view) {
+        /*
         if(cbDeleteWord.isChecked())
         {
             MainActivity.dbCategory.DeleteFlashcardFromCategory(actualCategory, actualId);
@@ -75,6 +76,7 @@ public class EditWord extends AppCompatActivity {
 
         }
         else {
+        */
             String enWord = etEnglishWord.getText().toString();
             String plWord = etPolishWord.getText().toString();
             String enSentence = etEnglishSentence.getText().toString();
@@ -88,7 +90,7 @@ public class EditWord extends AppCompatActivity {
             MainActivity.dbCategory.AddFlashcardToCategory(newCategory,actualId);
             Toast.makeText(getApplicationContext(), "Edytowano fiszkę", Toast.LENGTH_SHORT).show();
 
-        }
+        //}
         Intent i=new Intent(this, MainActivity.class);
         i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         startActivity(i);
