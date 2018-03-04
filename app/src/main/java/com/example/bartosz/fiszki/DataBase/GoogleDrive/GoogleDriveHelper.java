@@ -402,7 +402,7 @@ private ResultCallback<DriveApi.DriveContentsResult> readFromGoogleDriveResultCa
     public void onResult(@NonNull DriveApi.DriveContentsResult result) {
         if (!result.getStatus().isSuccess()) {
             Log.e(TAG, "Error with Read file from Google Drive");
-            handler.sendEmptyMessage(0);
+            //handler.sendEmptyMessage(0);
             Toast.makeText(activity, "Error with Read file from Google Drive", Toast.LENGTH_LONG).show();
             return;
         }
@@ -445,7 +445,7 @@ private ResultCallback<DriveApi.DriveContentsResult> readFromGoogleDriveResultCa
                             {
                                 i=0;
                                 int id = MainActivity.dbFlashcard.AddFlashcardIfNotExist(flashcard);
-                                System.out.println(flashcard.getEngSentence());
+                                //System.out.println(flashcard.getEngSentence());
                                 if(id!=0)
                                 {
                                     MainActivity.dbCategory.AddFlashcardToCategory(category,id);
@@ -515,7 +515,7 @@ private ResultCallback<DriveApi.DriveContentsResult> readFromGoogleDriveResultCa
             Toast.makeText(activity, "Wczytano dane z Google Drive", Toast.LENGTH_LONG).show();
             Log.d(TAG,"Wczytano dane z Google Drive");
 
-            handler.sendEmptyMessage(1);
+            //handler.sendEmptyMessage(1);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -557,10 +557,10 @@ private ResultCallback<DriveApi.DriveContentsResult> readFromGoogleDriveResultCa
                 }
             };
 
-
+/*
             public void setHandler(Handler handler)
             {
                 this.handler = handler;
             }
-
+*/
 }

@@ -32,6 +32,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.bartosz.fiszki.DataBase.GoogleDrive.GoogleDriveHelper;
+import com.example.bartosz.fiszki.DataBase.GoogleDrive.GoogleDriveRead;
 import com.example.bartosz.fiszki.DataBase.SQLite.CategoryHelper;
 import com.example.bartosz.fiszki.DataBase.SQLite.FlashcardHelper;
 import com.example.bartosz.fiszki.DataBase.SQLite.Tables.Flashcard;
@@ -73,7 +74,7 @@ public class MainActivity extends AppCompatActivity
     private ViewPager mViewPager;
     public static MenuItem itemSetting;
     private static int countFlashcards1;
-    public static GoogleDriveHelper googleDriveHelper;
+    //public static GoogleDriveHelper googleDriveHelper;
     public static Activity activity;
     public static String actualLanguageDataBase;
     public static List<Integer> idKnownWords = new ArrayList<>();
@@ -135,8 +136,8 @@ public class MainActivity extends AppCompatActivity
         mViewPager.setAdapter(mSectionsPagerAdapter);
         activity = this;
 
-        googleDriveHelper = new GoogleDriveHelper(activity);
-
+        //googleDriveHelper = new GoogleDriveHelper(activity);
+/*
         handler = new Handler(){
             @Override
             public void handleMessage(Message msg) {
@@ -145,8 +146,8 @@ public class MainActivity extends AppCompatActivity
                 progressDialog.dismiss();
             }
         };
-
-        googleDriveHelper.setHandler(handler);
+*/
+        //googleDriveHelper.setHandler(handler);
 
     }
 
@@ -220,7 +221,7 @@ public class MainActivity extends AppCompatActivity
     protected void onResume()
     {
         super.onResume();
-        googleDriveHelper.onResume();
+        //googleDriveHelper.onResume();
         Log.e(TAG,"Resume app");
     }
 
@@ -228,7 +229,7 @@ public class MainActivity extends AppCompatActivity
     protected void onStop()
     {
         super.onStop();
-        googleDriveHelper.onStop();
+        //googleDriveHelper.onStop();
         Log.e(TAG,"Stop app");
     }
 
@@ -334,14 +335,17 @@ public class MainActivity extends AppCompatActivity
 
                 builder.setPositiveButton("TAK", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
-                        progressDialog = ProgressDialog.show(MainActivity.this, "Odczyt z Google Drive", "Wczytywanie");
+                        //progressDialog = ProgressDialog.show(MainActivity.this, "Odczyt z Google Drive", "Wczytywanie");
+                        /*
                         new Thread(new Runnable() {
                             @Override
                             public void run() {
                                 googleDriveHelper.ReadDataFromGoogleDrive(getActualCsvFile());
                             }
                         }).start();
+*/
 
+                        new GoogleDriveRead(activity,getActualCsvFile()).execute("gdgf");
                         dialog.dismiss();
                     }
                 });
@@ -368,7 +372,8 @@ public class MainActivity extends AppCompatActivity
                 builder.setPositiveButton("TAK", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
 
-                        progressDialog = ProgressDialog.show(MainActivity.this, "Zapis na Google Drive", "Zapisywanie");
+                        //progressDialog = ProgressDialog.show(MainActivity.this, "Zapis na Google Drive", "Zapisywanie");
+                        /*
                         new Thread(){
                             @Override
                             public void run()
@@ -376,7 +381,7 @@ public class MainActivity extends AppCompatActivity
                                 googleDriveHelper.SaveDateOnGoogleDrive(getActualCsvFile());
                             }
                         }.start();
-
+*/
                         dialog.dismiss();
                     }
                 });
