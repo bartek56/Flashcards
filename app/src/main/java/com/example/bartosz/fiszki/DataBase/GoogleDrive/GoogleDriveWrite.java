@@ -1,6 +1,8 @@
 package com.example.bartosz.fiszki.DataBase.GoogleDrive;
 
+import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.IntentSender;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -16,8 +18,10 @@ import com.google.android.gms.common.api.Status;
 import com.google.android.gms.drive.Drive;
 import com.google.android.gms.drive.DriveApi;
 import com.google.android.gms.drive.DriveFile;
+import com.google.android.gms.drive.DriveFolder;
 import com.google.android.gms.drive.DriveId;
 import com.google.android.gms.drive.Metadata;
+import com.google.android.gms.drive.MetadataChangeSet;
 import com.google.android.gms.drive.query.Filters;
 import com.google.android.gms.drive.query.Query;
 import com.google.android.gms.drive.query.SearchableField;
@@ -29,6 +33,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 
+import static com.example.bartosz.fiszki.DataBase.GoogleDrive.BaseDemoActivity.REQUEST_CODE_RESOLUTION;
+import static com.example.bartosz.fiszki.MainActivity.activity;
+
 /**
  * Created by Bartek on 2018-03-04.
  */
@@ -39,48 +46,84 @@ public class GoogleDriveWrite extends AsyncTask<String, Void, String> {
     private String fileName;
     private DriveId driveId;
     public DriveFile driveFile;
-
+    private ProgressDialog dialog;
+    private Context context;
 
     public GoogleDriveWrite(Context context, String fileName) {
         this.fileName = fileName;
-
+        this.context = context;
+        dialog = new ProgressDialog(context);
         mGoogleApiClient = new GoogleApiClient.Builder(context)
                 .addApi(Drive.API)
                 .addScope(Drive.SCOPE_FILE)
                 //.addConnectionCallbacks(context)
                 //.addOnConnectionFailedListener(context)
                 .build();
-
     }
 
     @Override
     protected String doInBackground(String... strings) {
 
+
+
         mGoogleApiClient.registerConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
+
 
             @Override
             public void onConnected(@Nullable Bundle bundle) {
+                System.out.println("connected");
                 WriteDataToGoogleDrive();
             }
 
             @Override
             public void onConnectionSuspended(int i) {
-
+                System.out.println("connection suspend");
             }
         });
 
         mGoogleApiClient.registerConnectionFailedListener(new GoogleApiClient.OnConnectionFailedListener() {
             @Override
             public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+                if (!connectionResult.hasResolution()) {
+                    //GoogleApiAvailability.getInstance().getErrorDialog(context, connectionResult.getErrorCode(), 0).show();
+                    System.out.println("connection failed "+ connectionResult.getErrorMessage() + " " +connectionResult.getErrorCode());
+                    return;
 
+
+                }
+
+                try {
+
+                    System.out.println("connection failed2 "+ connectionResult.getErrorMessage() + " " +connectionResult.getErrorCode());
+                    connectionResult.startResolutionForResult(activity, REQUEST_CODE_RESOLUTION);
+
+                } catch (IntentSender.SendIntentException ex) {
+
+                    Log.e("INFO", "Exception while starting resolution activity", ex);
+                }
             }
         });
+
 
         mGoogleApiClient.connect();
 
 
-
         return null;
+    }
+
+    @Override
+    protected void onPreExecute() {
+        super.onPreExecute();
+        dialog.setMessage("Wait...");
+        dialog.show();
+    }
+
+    @Override
+    protected void onPostExecute(String s) {
+        super.onPostExecute(s);
+        //mGoogleApiClient.disconnect();
+        dialog.dismiss();
+        //MainActivity.Update();
     }
 
 
@@ -119,7 +162,6 @@ public class GoogleDriveWrite extends AsyncTask<String, Void, String> {
                         fileExist=true;
                         driveId = m.getDriveId();
 
-                        //driveId = "0B_7aHpqEzhaieUdlVzRDbzFOZWs";
                         driveFile = m.getDriveId().asDriveFile();
 
 
@@ -131,14 +173,13 @@ public class GoogleDriveWrite extends AsyncTask<String, Void, String> {
                     }
 
                 }
-                /*
+
                 if(!fileExist)
                 {
-                    //FlashcardHelper flashcardHelper= new FlashcardHelper(MainActivity.activity, fileName);
-                    //flashcardHelper.GetFlashcard(1);
-                    //CreateFileOnGoogleDrive();
+                    System.out.println("File doesn't exist");
+                    CreateFileOnGoogleDrive();
                 }
-*/
+
 
             }
         });
@@ -187,7 +228,8 @@ public class GoogleDriveWrite extends AsyncTask<String, Void, String> {
                         if (result.isSuccess()) {
                            // handler.sendEmptyMessage(0);
                            // Log.v(TAG, "Successfull saved in Google Drive");
-                           // Toast.makeText(activity, "Successfull saved in Google Drive", Toast.LENGTH_LONG).show();
+                            Toast.makeText(activity, "Zapisano na Google Drive", Toast.LENGTH_LONG).show();
+                            mGoogleApiClient.disconnect();
                         }
                     }
                 });
@@ -195,6 +237,34 @@ public class GoogleDriveWrite extends AsyncTask<String, Void, String> {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        }
+    };
+
+
+    public void CreateFileOnGoogleDrive(){
+
+        MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
+                .setTitle(fileName)
+
+                .setMimeType("text/plain")
+                .build();
+
+        // create a file in root folder
+        Drive.DriveApi.getRootFolder(mGoogleApiClient)
+                .createFile(mGoogleApiClient, changeSet, null)
+                .setResultCallback(fileCallback);
+    }
+
+    final private ResultCallback<DriveFolder.DriveFileResult> fileCallback = new ResultCallback<DriveFolder.DriveFileResult>() {
+        @Override
+        public void onResult(DriveFolder.DriveFileResult result) {
+            if (result.getStatus().isSuccess()) {
+                driveFile =  result.getDriveFile();
+                //Log.v(TAG, "file created: "+ result.getDriveFile().getDriveId());
+
+                WriteDataToGoogleDrive();
+            }
+            return;
         }
     };
 

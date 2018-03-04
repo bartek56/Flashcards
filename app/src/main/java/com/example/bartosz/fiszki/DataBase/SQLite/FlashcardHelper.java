@@ -4,12 +4,14 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteStatement;
 
 import com.example.bartosz.fiszki.DataBase.SQLite.Tables.Flashcard;
 import com.example.bartosz.fiszki.MainActivity;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Queue;
 
 /**
  * Created by bartosz on 12.03.17.
@@ -24,6 +26,27 @@ public class FlashcardHelper extends Database {
         super(context,DatabaseFileName);
         FILENAME = DatabaseFileName;
         this.context = context;
+    }
+
+    public void AddFlashcardsFromQueue(Queue<String> engWord, Queue<String> plWord, Queue<String> engSentence, Queue<String> plSentence) {
+
+        SQLiteDatabase db = getWritableDatabase();
+        db.beginTransaction();
+        String sql = "INSERT INTO flashcard (engWord, plWord, engSentence, plSentence) VALUES (?, ?, ?, ?)";
+        SQLiteStatement stmt = db.compileStatement(sql);
+
+        while (!engWord.isEmpty())
+        {
+            stmt.bindString(1, engWord.remove());
+            stmt.bindString(2, plWord.remove());
+            stmt.bindString(3, engSentence.remove());
+            stmt.bindString(4, plSentence.remove());
+            stmt.execute();
+            stmt.clearBindings();
+        }
+
+        db.setTransactionSuccessful();
+        db.endTransaction();
     }
 
     public void AddFlashcard(Flashcard flashcard){
@@ -170,16 +193,16 @@ public class FlashcardHelper extends Database {
     {
         List<String> list = new ArrayList<>();
 
-        List<String> categoryList = GetCategoriesList();
+        List<String> categoryList = GetCategoriesListWithoutSign();
 
         for (String category: categoryList)
         {
-            String tableName = category.replace(" ","_");
+            //String tableName = category.replace(" ","_");
             SQLiteDatabase db = getReadableDatabase();
             String[] columns = {"idFlashcard", "known"};
             Cursor cursor;
 
-            cursor = db.query(tableName, columns,null, null, null, null, null, null);
+            cursor = db.query(category, columns,null, null, null, null, null, null);
 
             if (cursor.getCount()>0)
             {
@@ -221,6 +244,25 @@ public class FlashcardHelper extends Database {
         return categoryList;
     }
 
+    public List<String> GetCategoriesListWithoutSign() {
+        List<String> categoryList = new ArrayList<String>();
+
+        String[] columns = {"idFlashcard"};
+        SQLiteDatabase db = getReadableDatabase();
+
+        Cursor cursor = db.rawQuery("SELECT name FROM sqlite_master WHERE type='table'", null);
+
+        while(cursor.moveToNext())
+        {
+            if(!cursor.getString(0).equals("android_metadata") && !cursor.getString(0).equals("sqlite_sequence") && !cursor.getString(0).equals("flashcard") ) {
+                categoryList.add(cursor.getString(0));
+            }
+
+        }
+
+        return categoryList;
+    }
+
     public void DeleteFlashcard(int id)
     {
         String args[] = {id + ""};
@@ -238,6 +280,9 @@ public class FlashcardHelper extends Database {
         db2.delete("inne",null,null);
         */
         context.deleteDatabase(FILENAME);
+        //SQLiteDatabase db = getWritableDatabase();
+        //onCreate(db);
+
 
     }
 

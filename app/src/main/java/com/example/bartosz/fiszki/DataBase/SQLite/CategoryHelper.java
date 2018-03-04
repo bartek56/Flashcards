@@ -4,11 +4,13 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteStatement;
 
 import com.example.bartosz.fiszki.MainActivity;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Queue;
 
 /**
  * Created by bartosz on 12.03.17.
@@ -158,6 +160,25 @@ public class CategoryHelper extends Database {
         String args[] = {id + ""};
         SQLiteDatabase db = getWritableDatabase();
         db.delete(tableName,"idFlashcard=?",args);
+    }
+
+    public void AddFlashcardsToCategoryFromQueue(Queue<Integer> idFlashcardQueue,Queue<Integer> flashcardIsKnownQueue, String category) {
+        SQLiteDatabase db = getWritableDatabase();
+        db.beginTransaction();
+
+        String sql = "INSERT INTO "+category+" (idFlashcard, known) VALUES (?, ?)";
+        SQLiteStatement stmt = db.compileStatement(sql);
+
+        while (!idFlashcardQueue.isEmpty())
+        {
+            stmt.bindLong(1, idFlashcardQueue.remove());
+            stmt.bindLong(2, flashcardIsKnownQueue.remove());
+            stmt.execute();
+            stmt.clearBindings();
+        }
+
+        db.setTransactionSuccessful();
+        db.endTransaction();
     }
 
 }

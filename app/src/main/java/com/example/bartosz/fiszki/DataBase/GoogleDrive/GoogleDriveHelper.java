@@ -1,19 +1,14 @@
 package com.example.bartosz.fiszki.DataBase.GoogleDrive;
 
 import android.app.Activity;
-import android.app.Notification;
 import android.content.IntentSender;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
-import android.os.ParcelFileDescriptor;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.example.bartosz.fiszki.DataBase.SQLite.CategoryHelper;
 import com.example.bartosz.fiszki.DataBase.SQLite.FlashcardHelper;
 import com.example.bartosz.fiszki.DataBase.SQLite.Tables.Flashcard;
 import com.example.bartosz.fiszki.MainActivity;
@@ -30,7 +25,6 @@ import com.google.android.gms.drive.DriveFolder;
 import com.google.android.gms.drive.DriveId;
 import com.google.android.gms.drive.Metadata;
 import com.google.android.gms.drive.MetadataChangeSet;
-import com.google.android.gms.drive.metadata.CustomPropertyKey;
 import com.google.android.gms.drive.query.Filters;
 import com.google.android.gms.drive.query.Query;
 import com.google.android.gms.drive.query.SearchableField;
@@ -38,17 +32,13 @@ import com.google.android.gms.drive.query.SearchableField;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
-import java.nio.charset.Charset;
+import java.util.ArrayDeque;
 import java.util.List;
+import java.util.Queue;
 
 import static com.example.bartosz.fiszki.MainActivity.deLanguageCsvFile;
 import static com.example.bartosz.fiszki.MainActivity.deLanguageDatabase;
@@ -257,7 +247,6 @@ public class GoogleDriveHelper implements GoogleApiClient.ConnectionCallbacks,
     }
 
 
-
     final private ResultCallback<DriveFolder.DriveFileResult> fileCallback = new ResultCallback<DriveFolder.DriveFileResult>() {
         @Override
         public void onResult(DriveFolder.DriveFileResult result) {
@@ -279,15 +268,12 @@ public class GoogleDriveHelper implements GoogleApiClient.ConnectionCallbacks,
         OpenFileInGoogleDrive();
     }
 
-
     public void SaveDateOnGoogleDrive(String file)
     {
         this.fileName = file;
         write=1;
         OpenFileInGoogleDrive();
     }
-
-
 
     public void OpenFileInGoogleDrive()
     {
@@ -315,7 +301,6 @@ public class GoogleDriveHelper implements GoogleApiClient.ConnectionCallbacks,
                     fileExist=true;
                     driveId = m.getDriveId();
 
-                    //driveId = "0B_7aHpqEzhaieUdlVzRDbzFOZWs";
                     driveFile = m.getDriveId().asDriveFile();
 
                     if(write==1)
@@ -359,7 +344,6 @@ public class GoogleDriveHelper implements GoogleApiClient.ConnectionCallbacks,
 
                 for (String line : list) {
                     baos.write(line.getBytes("UTF-8"));
-                    //baos.write('\n');
                 }
 
                 byte[] bytes = baos.toByteArray();
@@ -408,48 +392,57 @@ private ResultCallback<DriveApi.DriveContentsResult> readFromGoogleDriveResultCa
         }
         Log.d(TAG,"Reading data from Google Drive");
 
-        //MainActivity.dbFlashcard.DeleteAllFlashcards();
-        //File file = activity.getDatabasePath(getActualDatabse());
-
-
         try {
-            //OutputStream oos = new FileOutputStream(file);
-            //Writer writer = new OutputStreamWriter(oos);
-            //InputStream is = result.getDriveContents().getInputStream();
-
             BufferedReader reader = new BufferedReader(new InputStreamReader(result.getDriveContents().getInputStream()));
             String allText="";
             int i=0;
 
             Flashcard flashcard = new Flashcard(0,null,null,null,null);
-            String category="";
+            String category="inne";
+
+
+            int idFlashcard =0;
+            int columnNumber=0;
 
             String line;
+            Queue<String> engWord= new ArrayDeque<String>();
+            Queue<String> plWord=new ArrayDeque<String>();
+            Queue<String> engSentence=new ArrayDeque<String>();
+            Queue<String> plSentence=new ArrayDeque<String>();
+            Queue<Integer> idFlashcardQueue =new ArrayDeque<Integer>();
+            Queue<Integer> flashcardIsKnownQueue =new ArrayDeque<Integer>();
 
 
             while ((line = reader.readLine()) != null) {
-                //builder.append(line).append("\n");
                 for (char ch:line.toCharArray()) {
                     if(ch=='~')
                     {
-                        i++;
-
-                        switch (i)
+                        columnNumber++;
+                        switch (columnNumber)
                         {
-                            case 1: category = allText; MainActivity.dbCategory.CreateCategory(category);  break;
-                            case 2: flashcard.setEngWord(allText);  break;
-                            case 3: flashcard.setPlWord(allText); break;
-                            case 4: flashcard.setEngSentence(allText); break;
-                            case 5: flashcard.setPlSentence(allText); break;
+                            case 1:
+                            {
+                                if(!allText.equals(category))
+                                {
+                                    MainActivity.dbCategory.CreateCategory(allText);
+                                    MainActivity.dbFlashcard.AddFlashcardsFromQueue(engWord, plWord, engSentence, plSentence);
+                                    //MainActivity.dbCategory.AddFlashcardsToCategoryFromQueue(idFlashcardQueue,category);
+                                    category=allText;
+                                }
+                                break;
+                            }
+                            case 2: engWord.add(allText);  break;
+                            case 3: plWord.add(allText); break;
+                            case 4: engSentence.add(allText); break;
+                            case 5: plSentence.add(allText); break;
                             case 6:
                             {
-                                i=0;
-                                int id = MainActivity.dbFlashcard.AddFlashcardIfNotExist(flashcard);
-                                //System.out.println(flashcard.getEngSentence());
-                                if(id!=0)
-                                {
-                                    MainActivity.dbCategory.AddFlashcardToCategory(category,id);
-                                }
+
+                                columnNumber=0;
+                                idFlashcard++;
+                                idFlashcardQueue.add(idFlashcard);
+
+                                flashcardIsKnownQueue.add(allText.compareTo("1"));
 
                                 break;
                             }
@@ -464,58 +457,13 @@ private ResultCallback<DriveApi.DriveContentsResult> readFromGoogleDriveResultCa
             }
 
             reader.close();
-            //while ((c = is.read(buf)) > 0) {
-/*
-            while (is.read(buf)>0) {
-            //while(reader.readLine())
-                //oos.write(buf);
-                String text = new String(buf,"UTF-8");
+            MainActivity.dbFlashcard.AddFlashcardsFromQueue(engWord, plWord, engSentence, plSentence);
+            //MainActivity.dbCategory.AddFlashcardsToCategoryFromQueue(idFlashcardQueue,category);
 
-                if(text.equals("~"))
-                {
-                    i++;
-
-                    switch (i)
-                    {
-                        case 1: category = allText; MainActivity.dbCategory.CreateCategory(category);  break;
-                        case 2: flashcard.setEngWord(allText);  break;
-                        case 3: flashcard.setPlWord(allText); break;
-                        case 4: flashcard.setEngSentence(allText); break;
-                        case 5: flashcard.setPlSentence(allText); break;
-                        case 6:
-                        {
-                            i=0;
-                            int id = MainActivity.dbFlashcard.AddFlashcardIfNotExist(flashcard);
-                            System.out.println(flashcard.getEngSentence()+" " +flashcard.getPlSentence() + " "+flashcard.getEngWord()+" "+flashcard.getPlWord());
-
-                            if(id!=0)
-                            {
-                                MainActivity.dbCategory.AddFlashcardToCategory(category,id);
-                            }
-
-                            break;
-                        }
-                    }
-                    allText="";
-                }
-                else
-                {
-                    allText+=text;
-                }
-            }
-
-            is.close();
-*/
-            //oos.flush();
-            //oos.close();
-
-
-
-            //SQLiteDatabase.openOrCreateDatabase(file, null);
             Toast.makeText(activity, "Wczytano dane z Google Drive", Toast.LENGTH_LONG).show();
             Log.d(TAG,"Wczytano dane z Google Drive");
 
-            //handler.sendEmptyMessage(1);
+            handler.sendEmptyMessage(1);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -557,10 +505,10 @@ private ResultCallback<DriveApi.DriveContentsResult> readFromGoogleDriveResultCa
                 }
             };
 
-/*
+
             public void setHandler(Handler handler)
             {
                 this.handler = handler;
             }
-*/
+
 }
