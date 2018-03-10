@@ -78,8 +78,9 @@ public class MainActivity extends AppCompatActivity
     public static String actualLanguageDataBase;
     public static List<Integer> idKnownWords = new ArrayList<>();
 //    private ProgressDialog progressDialog;
-//    private android.os.Handler handler;
-
+    private android.os.Handler handler;
+    private GoogleDriveRead googleDriveRead;
+    private GoogleDriveWrite googleDriveWrite;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -170,6 +171,7 @@ public class MainActivity extends AppCompatActivity
             case frLanguageDatabase: actualCategory=sharedPreferences.getString(actualCategoryFrPreference, "inne"); break;
             case deLanguageDatabase: actualCategory=sharedPreferences.getString(actualCategoryDePreference, "inne"); break;
         }
+
         return actualCategory;
     }
 
@@ -345,7 +347,20 @@ public class MainActivity extends AppCompatActivity
                         dbFlashcard.DeleteAllFlashcards();
                         dbFlashcard = new FlashcardHelper(activity,actualLanguageDataBase);
                         dbCategory = new CategoryHelper(activity,actualLanguageDataBase);
-                        new GoogleDriveRead(activity,getActualCsvFile()).execute("Read");
+                        //new GoogleDriveRead(activity,getActualCsvFile()).execute("Read");
+                        googleDriveRead = new GoogleDriveRead(activity,getActualCsvFile());
+
+                        handler = new Handler(){
+                            @Override
+                            public void handleMessage(Message msg) {
+                                if(msg.what==1)
+                                {
+                                    Update();
+                                    Toast.makeText(activity, "ZWczytano dane z Google Drive", Toast.LENGTH_LONG).show();
+                                }
+                            }
+                        };
+                        googleDriveRead.setHandler(handler);
 
                         dialog.dismiss();
                     }
@@ -376,7 +391,8 @@ public class MainActivity extends AppCompatActivity
                         }.start();
                         */
 
-                        new GoogleDriveWrite(activity,getActualCsvFile()).execute("Read");
+                        //new GoogleDriveWrite(activity,getActualCsvFile()).execute("Read");
+                        googleDriveWrite = new GoogleDriveWrite(activity,getActualCsvFile());
                         dialog.dismiss();
                     }
                 });

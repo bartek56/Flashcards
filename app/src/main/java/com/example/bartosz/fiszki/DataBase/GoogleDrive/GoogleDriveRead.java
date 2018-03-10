@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.IntentSender;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -37,104 +38,66 @@ import static com.example.bartosz.fiszki.MainActivity.activity;
  * Created by Bartek on 2018-03-04.
  */
 
-public class GoogleDriveRead extends AsyncTask<String, Void, String> {
+public class GoogleDriveRead implements GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener {
 
 
-    private GoogleApiClient  mGoogleApiClient;
+        private GoogleApiClient  mGoogleApiClient;
         private String fileName;
         private DriveId driveId;
         public DriveFile driveFile;
         private Context context;
-        private ProgressDialog dialog;
+        private Handler handler;
+
 
 
     public GoogleDriveRead(Context context, String fileName) {
             this.fileName = fileName;
             this.context = context;
-            dialog = new ProgressDialog(context);
+
 
             mGoogleApiClient = new GoogleApiClient.Builder(context)
                     .addApi(Drive.API)
                     .addScope(Drive.SCOPE_FILE)
-                    //.addConnectionCallbacks(this)
-                    //.addOnConnectionFailedListener(context)
+                    .addConnectionCallbacks(this)
+                    .addOnConnectionFailedListener(this)
                     .build();
-            /*
-        GoogleApiClient.Builder builder = new GoogleApiClient.Builder(context)
-                .addApi(Drive.API)
-                .addScope(Drive.SCOPE_FILE);
-        mGoogleApiClient = builder.build();
-        */
 
-    }
-
-
-    @Override
-    protected String doInBackground(String... strings) {
-
-        mGoogleApiClient.registerConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
-            @Override
-            public void onConnected(@Nullable Bundle bundle) {
-                ReadDataFromGoogleDrive();
-                System.out.println("connected");
-            }
-
-            @Override
-            public void onConnectionSuspended(int i) {
-                System.out.println("connection suspend");
-            }
-
-        });
-
-
-        mGoogleApiClient.registerConnectionFailedListener(new GoogleApiClient.OnConnectionFailedListener() {
-            @Override
-            public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-                if (!connectionResult.hasResolution()) {
-                    //GoogleApiAvailability.getInstance().getErrorDialog(context, connectionResult.getErrorCode(), 0).show();
-                    System.out.println("connection failed "+ connectionResult.getErrorMessage() + " " +connectionResult.getErrorCode());
-
-                }
-                try {
-                    dialog.dismiss();
-                    connectionResult.startResolutionForResult(activity, REQUEST_CODE_RESOLUTION);
-                    Toast.makeText(activity, "Wybierz konto i ponownie wczytaj dane", Toast.LENGTH_LONG).show();
-
-                } catch (IntentSender.SendIntentException ex) {
-
-                    Log.e("INFO", "Exception while starting resolution activity", ex);
-                }
-            }
-        });
         mGoogleApiClient.connect();
 
-        return null;
     }
 
-    @Override
-    protected void onPreExecute() {
-        super.onPreExecute();
-        dialog.setMessage("Wait...");
-        dialog.show();
-
-    }
 
     @Override
-    protected void onPostExecute(String s) {
-        super.onPostExecute(s);
-        //dialog.dismiss();
-        //mGoogleApiClient.disconnect();
-        //dialog.dismiss();
-        //MainActivity.Update();
-        //Toast.makeText(context, "Read file from Google Drive", Toast.LENGTH_LONG).show();
+    public void onConnected(@Nullable Bundle bundle) {
+        ReadDataFromGoogleDrive();
+
+
+        System.out.println("connected");
 
     }
 
     @Override
-    protected void onCancelled() {
-        super.onCancelled();
-        //dialog.dismiss();
+    public void onConnectionSuspended(int i) {
 
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        if (!connectionResult.hasResolution()) {
+            //GoogleApiAvailability.getInstance().getErrorDialog(context, connectionResult.getErrorCode(), 0).show();
+            System.out.println("connection failed "+ connectionResult.getErrorMessage() + " " +connectionResult.getErrorCode());
+
+        }
+        try {
+
+            connectionResult.startResolutionForResult(activity, REQUEST_CODE_RESOLUTION);
+            Toast.makeText(activity, "Wybierz konto i ponownie wczytaj dane", Toast.LENGTH_LONG).show();
+
+        } catch (IntentSender.SendIntentException ex) {
+
+            Log.e("INFO", "Exception while starting resolution activity", ex);
+        }
     }
 
 
@@ -145,8 +108,8 @@ public class GoogleDriveRead extends AsyncTask<String, Void, String> {
             public void onResult(@NonNull DriveApi.MetadataBufferResult result) {
                 if (!result.getStatus().isSuccess()) {
 
-                    //Log.e(TAG, "error with opening file");
-                    //Toast.makeText(activity, "error with opening file", Toast.LENGTH_LONG).show();
+                    Log.e("ukh", "error with opening file");
+                    Toast.makeText(activity, "error with opening file", Toast.LENGTH_LONG).show();
                     return;
             }
 
@@ -191,98 +154,128 @@ public class GoogleDriveRead extends AsyncTask<String, Void, String> {
         @Override
         public void onResult(@NonNull DriveApi.DriveContentsResult result) {
             if (!result.getStatus().isSuccess()) {
-                //Log.e(TAG, "Error with Read file from Google Drive");
-                //handler.sendEmptyMessage(0);
-                //Toast.makeText(activity, "Error with Read file from Google Drive", Toast.LENGTH_LONG).show();
+                Toast.makeText(activity, "Error with Read file from Google Drive", Toast.LENGTH_LONG).show();
                 return;
             }
-            //Log.d(TAG,"Reading data from Google Drive");
 
-            //MainActivity.dbFlashcard.DeleteAllFlashcards();
-            //File file = activity.getDatabasePath(getActualDatabse());
+            new AsyncTask<DriveApi.DriveContentsResult, Void, String>(){
 
+                private ProgressDialog dialog;
 
-            try {
-                //OutputStream oos = new FileOutputStream(file);
-                //Writer writer = new OutputStreamWriter(oos);
-                //InputStream is = result.getDriveContents().getInputStream();
+                @Override
+                protected void onPreExecute() {
+                    super.onPreExecute();
+                    dialog = new ProgressDialog(context);
+                    dialog.setTitle("Wczytywanie danych...");
+                    dialog.setMessage("Czekaj...");
+                    dialog.show();
 
-                BufferedReader reader = new BufferedReader(new InputStreamReader(result.getDriveContents().getInputStream()));
-                String allText="";
-                int i=0;
-
-                Flashcard flashcard = new Flashcard(0,null,null,null,null);
-                String category="inne";
-
-
-                int idFlashcard =0;
-                int columnNumber=0;
-
-                String line;
-                Queue<String> engWord= new ArrayDeque<String>();
-                Queue<String> plWord=new ArrayDeque<String>();
-                Queue<String> engSentence=new ArrayDeque<String>();
-                Queue<String> plSentence=new ArrayDeque<String>();
-
-                Queue<Integer> idFlashcardQueue =new ArrayDeque<Integer>();
-                Queue<Integer> flashcardIsKnownQueue =new ArrayDeque<Integer>();
-
-                while ((line = reader.readLine()) != null) {
-                    //builder.append(line).append("\n");
-                    for (char ch:line.toCharArray()) {
-                        if(ch=='~')
-                        {
-                            columnNumber++;
-                            switch (columnNumber)
-                            {
-                                case 1:
-                                {
-                                    if(!allText.equals(category))
-                                    {
-                                        MainActivity.dbCategory.CreateCategory(allText);
-                                        MainActivity.dbFlashcard.AddFlashcardsFromQueue(engWord, plWord, engSentence, plSentence);
-                                        MainActivity.dbCategory.AddFlashcardsToCategoryFromQueue(idFlashcardQueue,flashcardIsKnownQueue, category);
-                                        category=allText;
-                                    }
-                                    break;
-                                }
-                                case 2: engWord.add(allText);  break;
-                                case 3: plWord.add(allText); break;
-                                case 4: engSentence.add(allText); break;
-                                case 5: plSentence.add(allText); break;
-                                case 6:
-                                {
-
-                                    columnNumber=0;
-                                    idFlashcard++;
-                                    idFlashcardQueue.add(idFlashcard);
-                                    flashcardIsKnownQueue.add(Integer.parseInt(allText));
-
-                                    break;
-                                }
-                            }
-                            allText="";
-                        }
-                        else
-                        {
-                            allText+=ch;
-                        }
-                    }
                 }
 
-                reader.close();
-                MainActivity.dbFlashcard.AddFlashcardsFromQueue(engWord, plWord, engSentence, plSentence);
-                MainActivity.dbCategory.AddFlashcardsToCategoryFromQueue(idFlashcardQueue,flashcardIsKnownQueue,category);
+                @Override
+                protected void onPostExecute(String s) {
+                    super.onPostExecute(s);
+                    dialog.dismiss();
+                    mGoogleApiClient.disconnect();
+                    handler.sendEmptyMessage(1);
 
-                mGoogleApiClient.disconnect();
-                dialog.dismiss();
 
-                //Toast.makeText(activity, "Wczytano dane z Google Drive", Toast.LENGTH_LONG).show();
-                //Log.d(TAG,"Wczytano dane z Google Drive");
+                }
 
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+                @Override
+                protected String doInBackground(DriveApi.DriveContentsResult... results) {
+
+                    DriveApi.DriveContentsResult result = results[0];
+
+                    try {
+                        //OutputStream oos = new FileOutputStream(file);
+                        //Writer writer = new OutputStreamWriter(oos);
+                        //InputStream is = result.getDriveContents().getInputStream();
+
+                        BufferedReader reader = new BufferedReader(new InputStreamReader(result.getDriveContents().getInputStream()));
+                        String allText="";
+                        int i=0;
+
+                        //Flashcard flashcard = new Flashcard(0,null,null,null,null);
+                        String category="inne";
+
+
+                        int idFlashcard =0;
+                        int columnNumber=0;
+
+                        String line;
+                        Queue<String> engWord= new ArrayDeque<String>();
+                        Queue<String> plWord=new ArrayDeque<String>();
+                        Queue<String> engSentence=new ArrayDeque<String>();
+                        Queue<String> plSentence=new ArrayDeque<String>();
+
+                        Queue<Integer> idFlashcardQueue =new ArrayDeque<Integer>();
+                        Queue<Integer> flashcardIsKnownQueue =new ArrayDeque<Integer>();
+
+                        while ((line = reader.readLine()) != null) {
+                            //builder.append(line).append("\n");
+                            for (char ch:line.toCharArray()) {
+                                if(ch=='~')
+                                {
+                                    columnNumber++;
+                                    switch (columnNumber)
+                                    {
+                                        case 1:
+                                        {
+                                            if(!allText.equals(category))
+                                            {
+                                                MainActivity.dbCategory.CreateCategory(allText);
+                                                MainActivity.dbFlashcard.AddFlashcardsFromQueue(engWord, plWord, engSentence, plSentence);
+                                                MainActivity.dbCategory.AddFlashcardsToCategoryFromQueue(idFlashcardQueue,flashcardIsKnownQueue, category);
+                                                category=allText;
+                                            }
+                                            break;
+                                        }
+                                        case 2: engWord.add(allText);  break;
+                                        case 3: plWord.add(allText); break;
+                                        case 4: engSentence.add(allText); break;
+                                        case 5: plSentence.add(allText); break;
+                                        case 6:
+                                        {
+
+                                            columnNumber=0;
+                                            idFlashcard++;
+                                            idFlashcardQueue.add(idFlashcard);
+                                            flashcardIsKnownQueue.add(Integer.parseInt(allText));
+
+                                            break;
+                                        }
+                                    }
+                                    allText="";
+                                }
+                                else
+                                {
+                                    allText+=ch;
+                                }
+                            }
+                        }
+
+                        reader.close();
+                        MainActivity.dbFlashcard.AddFlashcardsFromQueue(engWord, plWord, engSentence, plSentence);
+                        MainActivity.dbCategory.AddFlashcardsToCategoryFromQueue(idFlashcardQueue,flashcardIsKnownQueue,category);
+
+
+                        //dialog.dismiss();
+
+                        //Toast.makeText(activity, "Wczytano dane z Google Drive", Toast.LENGTH_LONG).show();
+                        //Log.d(TAG,"Wczytano dane z Google Drive");
+
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    return null;
+                }
+            }.execute(result);
+
+
+
+
         }
     };
 
@@ -298,4 +291,8 @@ public class GoogleDriveRead extends AsyncTask<String, Void, String> {
         return query;
     }
 
+
+    public void setHandler(Handler handler) {
+        this.handler = handler;
+    }
 }

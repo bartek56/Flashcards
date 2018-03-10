@@ -40,7 +40,8 @@ import static com.example.bartosz.fiszki.MainActivity.activity;
  * Created by Bartek on 2018-03-04.
  */
 
-public class GoogleDriveWrite extends AsyncTask<String, Void, String> {
+public class GoogleDriveWrite implements GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener {
 
     private GoogleApiClient mGoogleApiClient;
     private String fileName;
@@ -56,31 +57,21 @@ public class GoogleDriveWrite extends AsyncTask<String, Void, String> {
         mGoogleApiClient = new GoogleApiClient.Builder(context)
                 .addApi(Drive.API)
                 .addScope(Drive.SCOPE_FILE)
-                //.addConnectionCallbacks(context)
-                //.addOnConnectionFailedListener(context)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
                 .build();
+
+        mGoogleApiClient.connect();
     }
 
     @Override
-    protected String doInBackground(String... strings) {
+    public void onConnected(@Nullable Bundle bundle) {
+        System.out.println("connected");
+        WriteDataToGoogleDrive();
+    }
 
-
-
-        mGoogleApiClient.registerConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
-
-
-            @Override
-            public void onConnected(@Nullable Bundle bundle) {
-                System.out.println("connected");
-                WriteDataToGoogleDrive();
-            }
-
-            @Override
-            public void onConnectionSuspended(int i) {
-                System.out.println("connection suspend");
-            }
-        });
-
+    @Override
+    public void onConnectionSuspended(int i) {
         mGoogleApiClient.registerConnectionFailedListener(new GoogleApiClient.OnConnectionFailedListener() {
             @Override
             public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
@@ -88,15 +79,10 @@ public class GoogleDriveWrite extends AsyncTask<String, Void, String> {
                     //GoogleApiAvailability.getInstance().getErrorDialog(context, connectionResult.getErrorCode(), 0).show();
                     System.out.println("connection failed "+ connectionResult.getErrorMessage() + " " +connectionResult.getErrorCode());
                     return;
-
-
                 }
 
                 try {
-
-                    System.out.println("connection failed2 "+ connectionResult.getErrorMessage() + " " +connectionResult.getErrorCode());
                     connectionResult.startResolutionForResult(activity, REQUEST_CODE_RESOLUTION);
-
                 } catch (IntentSender.SendIntentException ex) {
 
                     Log.e("INFO", "Exception while starting resolution activity", ex);
@@ -105,26 +91,14 @@ public class GoogleDriveWrite extends AsyncTask<String, Void, String> {
         });
 
 
-        mGoogleApiClient.connect();
 
-
-        return null;
     }
 
     @Override
-    protected void onPreExecute() {
-        super.onPreExecute();
-        dialog.setMessage("Wait...");
-        dialog.show();
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
     }
 
-    @Override
-    protected void onPostExecute(String s) {
-        super.onPostExecute(s);
-        //mGoogleApiClient.disconnect();
-        dialog.dismiss();
-        //MainActivity.Update();
-    }
 
 
     private Query QuerySearchFile()
@@ -194,51 +168,88 @@ public class GoogleDriveWrite extends AsyncTask<String, Void, String> {
                // Toast.makeText(activity, "error with save in Google Drive", Toast.LENGTH_LONG).show();
                 return;
             }
-            try {
 
-                List<String> list = MainActivity.dbFlashcard.GetAllFlashcards();
 
-                OutputStream oos = result.getDriveContents().getOutputStream();
+            new AsyncTask<DriveApi.DriveContentsResult, Void, String>(){
 
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                private ProgressDialog dialog;
 
-                for (String line : list) {
-                    baos.write(line.getBytes("UTF-8"));
-                    //baos.write('\n');
+                @Override
+                protected void onPreExecute() {
+                    super.onPreExecute();
+                    dialog = new ProgressDialog(context);
+                    dialog.setTitle("Zapisywanie danych...");
+                    dialog.setMessage("Czekaj...");
+                    dialog.show();
                 }
 
-                byte[] bytes = baos.toByteArray();
-
-
-                InputStream is = new ByteArrayInputStream(bytes);
-
-                byte[] buf = new byte[512];
-                int c;
-                while ((c = is.read(buf)) > 0) {
-                    oos.write(buf, 0, c);
+                @Override
+                protected void onPostExecute(String s) {
+                    super.onPostExecute(s);
+                    dialog.dismiss();
 
                 }
-                oos.flush();
-                oos.close();
 
+                @Override
+                protected String doInBackground(DriveApi.DriveContentsResult... driveContentsResults) {
 
-                result.getDriveContents().commit(mGoogleApiClient, null).setResultCallback(new ResultCallback<com.google.android.gms.common.api.Status>() {
-                    @Override
-                    public void onResult(com.google.android.gms.common.api.Status result) {
-                        if (result.isSuccess()) {
-                           // handler.sendEmptyMessage(0);
-                           // Log.v(TAG, "Successfull saved in Google Drive");
-                            Toast.makeText(activity, "Zapisano na Google Drive", Toast.LENGTH_LONG).show();
-                            mGoogleApiClient.disconnect();
+                    DriveApi.DriveContentsResult result = driveContentsResults[0];
+
+                    try {
+
+                        List<String> list = MainActivity.dbFlashcard.GetAllFlashcards();
+
+                        OutputStream oos = result.getDriveContents().getOutputStream();
+
+                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+                        for (String line : list) {
+                            baos.write(line.getBytes("UTF-8"));
+                            //baos.write('\n');
                         }
-                    }
-                });
 
-            } catch (IOException e) {
-                e.printStackTrace();
+                        byte[] bytes = baos.toByteArray();
+
+
+                        InputStream is = new ByteArrayInputStream(bytes);
+
+                        byte[] buf = new byte[512];
+                        int c;
+                        while ((c = is.read(buf)) > 0) {
+                            oos.write(buf, 0, c);
+
+                        }
+                        oos.flush();
+                        oos.close();
+
+                        result.getDriveContents().commit(mGoogleApiClient, null).setResultCallback(finishedRead);
+
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    return null;
+                }
+            }.execute(result);
+
+        }
+    };
+
+
+    private ResultCallback<com.google.android.gms.common.api.Status> finishedRead = new ResultCallback<com.google.android.gms.common.api.Status>() {
+
+
+        @Override
+        public void onResult(@NonNull Status status) {
+            if (status.isSuccess()) {
+                // handler.sendEmptyMessage(0);
+                // Log.v(TAG, "Successfull saved in Google Drive");
+                Toast.makeText(activity, "Zapisano na Google Drive", Toast.LENGTH_LONG).show();
+                mGoogleApiClient.disconnect();
             }
         }
     };
+
 
 
     public void CreateFileOnGoogleDrive(){
@@ -267,5 +278,6 @@ public class GoogleDriveWrite extends AsyncTask<String, Void, String> {
             return;
         }
     };
+
 
 }
