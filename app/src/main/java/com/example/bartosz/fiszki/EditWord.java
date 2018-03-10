@@ -54,7 +54,7 @@ public class EditWord extends AppCompatActivity {
         //cbDeleteWord = (CheckBox) findViewById(R.id.cbDeleteWord);
 
         sCategory = (Spinner) findViewById(R.id.sCategory);
-        ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, MainActivity.dbCategory.GetCategoriesList());
+        ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, MainActivity.dbFlashcard.GetCategoriesList());
         dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         sCategory.setAdapter(dataAdapter);
         actualCategory=MainActivity.GetActualCategory();
@@ -84,10 +84,10 @@ public class EditWord extends AppCompatActivity {
 
             Flashcard flashcard = new Flashcard(actualId, enWord, plWord, enSentence, plSentence);
             MainActivity.dbFlashcard.SetFlashcard(flashcard);
-            MainActivity.dbCategory.DeleteFlashcardFromCategory(actualCategory, actualId);
+            MainActivity.dbFlashcard.DeleteFlashcardFromCategory(actualCategory, actualId);
 
             newCategory = sCategory.getSelectedItem().toString();
-            MainActivity.dbCategory.AddFlashcardToCategory(newCategory,actualId);
+            MainActivity.dbFlashcard.AddFlashcardToCategory(newCategory,actualId);
             Toast.makeText(getApplicationContext(), "Edytowano fiszkę", Toast.LENGTH_SHORT).show();
 
         //}

@@ -21,7 +21,7 @@ public class EditCategories extends AppCompatActivity {
 
         Spinner spinner = (Spinner) findViewById(R.id.sCategory);
 
-        ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, MainActivity.dbCategory.GetCategoriesListWithoutOther());
+        ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, MainActivity.dbFlashcard.GetCategoriesListWithoutOther());
 
         dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
@@ -31,7 +31,7 @@ public class EditCategories extends AppCompatActivity {
     public void DeleteCategoryButtonOnClick(View view) {
         Spinner sCategory = (Spinner) findViewById(R.id.sCategory);
 
-        MainActivity.dbCategory.DeleteCategory(sCategory.getSelectedItem().toString());
+        MainActivity.dbFlashcard.DeleteCategory(sCategory.getSelectedItem().toString());
         Toast.makeText(getApplicationContext(), "Usunięto kategorie", Toast.LENGTH_SHORT).show();
         Intent i=new Intent(this, MainActivity.class);
         i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -41,7 +41,7 @@ public class EditCategories extends AppCompatActivity {
     public void AddCategoryButtonOnClick(View view) {
         EditText newCategory = (EditText) findViewById(R.id.etCategory);
         String category = newCategory.getText().toString();
-        MainActivity.dbCategory.CreateCategory(category);
+        MainActivity.dbFlashcard.CreateCategory(category);
 
         Toast.makeText(getApplicationContext(), "Dodano kategorie", Toast.LENGTH_SHORT).show();
 

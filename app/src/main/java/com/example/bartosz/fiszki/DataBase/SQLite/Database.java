@@ -19,28 +19,10 @@ public abstract class Database extends SQLiteOpenHelper {
     public Database(Context context, String FILENAME) {
         super(context, FILENAME,null,1);
         file = FILENAME;
-
-    }
-
-    public void Test()
-    {
-        SQLiteDatabase db = getReadableDatabase();
-
-        Cursor cursor = db.rawQuery("SELECT idFlashcard FROM inne", null);
-
-        System.out.print("id category: ");
-        while(cursor.moveToNext())
-        {
-            System.out.print(cursor.getInt(0));
-
-        }
-        System.out.println();
-
     }
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-
         try
         {
             db.execSQL(
@@ -58,7 +40,6 @@ public abstract class Database extends SQLiteOpenHelper {
                             "idFlashcard integer,"+
                             "known boolean);"+
                             "");
-
 
             Log.d(TAG,"created tables "+file);
 

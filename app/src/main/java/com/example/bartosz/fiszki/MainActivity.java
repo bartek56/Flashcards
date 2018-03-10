@@ -34,7 +34,6 @@ import android.widget.Toast;
 
 import com.example.bartosz.fiszki.DataBase.GoogleDrive.GoogleDriveRead;
 import com.example.bartosz.fiszki.DataBase.GoogleDrive.GoogleDriveWrite;
-import com.example.bartosz.fiszki.DataBase.SQLite.CategoryHelper;
 import com.example.bartosz.fiszki.DataBase.SQLite.FlashcardHelper;
 import com.example.bartosz.fiszki.DataBase.SQLite.Tables.Flashcard;
 import com.example.bartosz.fiszki.DataBase.SQLite.RandomNumber;
@@ -42,16 +41,13 @@ import com.example.bartosz.fiszki.DataBase.SQLite.RandomNumber;
 import java.util.ArrayList;
 import java.util.List;
 
-
-
 public class MainActivity extends AppCompatActivity
 {
-    public static CategoryHelper dbCategory;
-    public static FlashcardHelper dbFlashcard;
 
+    public static FlashcardHelper dbFlashcard;
     public static SharedPreferences sharedPreferences;
-    public static final String TAG = "Main_Activity";
-    public static String actualCategory;
+    private static final String TAG = "Main_Activity";
+    private static String actualCategory;
     public static final String actualCategoryEngPreference = "actualCategoryEng";
     public static final String actualCategoryFrPreference = "actualCategoryFr";
     public static final String actualCategoryDePreference = "actualCategoryDe";
@@ -68,16 +64,14 @@ public class MainActivity extends AppCompatActivity
     public static final String frLanguageCsvFile = "flashcardsFr.txt";
     public static final String languageModeEngPl = "Eng-Pl";
     public static final String languageModePlEng = "Pl-Eng";
-    public static int randomNumbers[];
+    private static int randomNumbers[];
     private static SectionsPagerAdapter mSectionsPagerAdapter;
     private ViewPager mViewPager;
-    public static MenuItem itemSetting;
+    private static MenuItem itemSetting;
     private static int countFlashcards1;
-//    public static GoogleDriveHelper googleDriveHelper;
     public static Activity activity;
     public static String actualLanguageDataBase;
-    public static List<Integer> idKnownWords = new ArrayList<>();
-//    private ProgressDialog progressDialog;
+    private static List<Integer> idKnownWords = new ArrayList<>();
     private android.os.Handler handler;
     private GoogleDriveRead googleDriveRead;
     private GoogleDriveWrite googleDriveWrite;
@@ -85,6 +79,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         sharedPreferences = getSharedPreferences(actualCategoryEngPreference, Activity.MODE_PRIVATE);
         sharedPreferences = getSharedPreferences(actualCategoryDePreference, Activity.MODE_PRIVATE);
         sharedPreferences = getSharedPreferences(actualCategoryFrPreference, Activity.MODE_PRIVATE);
@@ -92,12 +87,10 @@ public class MainActivity extends AppCompatActivity
         sharedPreferences = getSharedPreferences(showKnownWordsPreference, Activity.MODE_PRIVATE);
         sharedPreferences = getSharedPreferences(actualNumberPreference, Activity.MODE_PRIVATE);
         sharedPreferences = getSharedPreferences(languageModePreference, Activity.MODE_PRIVATE);
-
         sharedPreferences = getSharedPreferences(languagePreference, Activity.MODE_PRIVATE);
 
         actualLanguageDataBase = sharedPreferences.getString(languagePreference, engLanguageDatabase);
 
-        dbCategory = new CategoryHelper(this, actualLanguageDataBase);
         dbFlashcard = new FlashcardHelper(this, actualLanguageDataBase);
 
         actualCategory = GetActualCategory();
@@ -109,7 +102,7 @@ public class MainActivity extends AppCompatActivity
             case deLanguageDatabase: setTitle("Fiszki Niemiecki "+actualCategory); break;
         }
 
-        countFlashcards1 = dbCategory.CountFlashcard(actualCategory,sharedPreferences.getBoolean(showKnownWordsPreference,true));
+        countFlashcards1 = dbFlashcard.CountFlashcard(actualCategory,sharedPreferences.getBoolean(showKnownWordsPreference,true));
         if (countFlashcards1 == 0)
             countFlashcards1 = 1;
 
@@ -129,29 +122,14 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-
-        idKnownWords = dbCategory.IdFlashcard(actualCategory,sharedPreferences.getBoolean(showKnownWordsPreference, false));
+        idKnownWords = dbFlashcard.IdFlashcard(actualCategory,sharedPreferences.getBoolean(showKnownWordsPreference, false));
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
         activity = this;
-
-        /*
-        googleDriveHelper = new GoogleDriveHelper(activity);
-        handler = new Handler(){
-            @Override
-            public void handleMessage(Message msg) {
-                if(msg.what==1)
-                    Update();
-                progressDialog.dismiss();
-            }
-        };
-        googleDriveHelper.setHandler(handler);
-*/
     }
 
-    public static String getActualCsvFile()
-    {
+    public static String getActualCsvFile(){
         String actualCsvFile=null;
         switch (MainActivity.actualLanguageDataBase)
         {
@@ -160,7 +138,6 @@ public class MainActivity extends AppCompatActivity
             case frLanguageDatabase: actualCsvFile= frLanguageCsvFile;break;
         }
         return actualCsvFile;
-
     }
 
     public static String GetActualCategory() {
@@ -194,10 +171,13 @@ public class MainActivity extends AppCompatActivity
     public void Update() {
         actualLanguageDataBase = sharedPreferences.getString(languagePreference, engLanguageDatabase);
 
-        dbCategory = new CategoryHelper(this, actualLanguageDataBase);
+        boolean showKnownWords = sharedPreferences.getBoolean(showKnownWordsPreference,true);
+
         dbFlashcard = new FlashcardHelper(this, actualLanguageDataBase);
 
-        countFlashcards1 = dbCategory.CountFlashcard(GetActualCategory(),sharedPreferences.getBoolean(showKnownWordsPreference,true));
+
+
+        countFlashcards1 = dbFlashcard.CountFlashcard(GetActualCategory(),showKnownWords);
         if (countFlashcards1 == 0)
             countFlashcards1 = 1;
         randomNumbers = new int[countFlashcards1];
@@ -212,7 +192,7 @@ public class MainActivity extends AppCompatActivity
             }
         }
 
-        idKnownWords = dbCategory.IdFlashcard(GetActualCategory(),sharedPreferences.getBoolean(showKnownWordsPreference, false));
+        idKnownWords = dbFlashcard.IdFlashcard(GetActualCategory(),showKnownWords);
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
         mViewPager.setAdapter(mSectionsPagerAdapter);
     }
@@ -286,13 +266,11 @@ public class MainActivity extends AppCompatActivity
             }
 
             case R.id.action_delanguage: {
-                MainActivity.dbCategory = new CategoryHelper(this,deLanguageDatabase);
                 MainActivity.dbFlashcard = new FlashcardHelper(this,deLanguageDatabase);
                 SharedPreferences.Editor preferencesEditor = sharedPreferences.edit();
                 preferencesEditor.putString(languagePreference,deLanguageDatabase);
                 preferencesEditor.commit();
                 String category=sharedPreferences.getString(actualCategoryDePreference, "inne");
-
                 //idKnownWords = dbCategory.IdFlashcard(category,sharedPreferences.getBoolean(showKnownWordsPreference, false));
                 setTitle("Fiszki Niemiecki "+category);
                 Update();
@@ -301,12 +279,10 @@ public class MainActivity extends AppCompatActivity
             }
 
             case R.id.action_englanguage: {
-                MainActivity.dbCategory = new CategoryHelper(this,engLanguageDatabase);
                 MainActivity.dbFlashcard = new FlashcardHelper(this,engLanguageDatabase);
                 SharedPreferences.Editor preferencesEditor = sharedPreferences.edit();
                 preferencesEditor.putString(languagePreference,engLanguageDatabase);
                 preferencesEditor.commit();
-
                 String category=sharedPreferences.getString(actualCategoryEngPreference, "inne");
                 //idKnownWords = dbCategory.IdFlashcard(category,sharedPreferences.getBoolean(showKnownWordsPreference, false));
                 setTitle("Fiszki Angielski "+category);
@@ -315,7 +291,6 @@ public class MainActivity extends AppCompatActivity
             }
 
             case R.id.action_frlanguage: {
-                MainActivity.dbCategory = new CategoryHelper(this,frLanguageDatabase);
                 MainActivity.dbFlashcard = new FlashcardHelper(this,frLanguageDatabase);
                 SharedPreferences.Editor preferencesEditor = sharedPreferences.edit();
                 preferencesEditor.putString(languagePreference,frLanguageDatabase);
@@ -324,49 +299,39 @@ public class MainActivity extends AppCompatActivity
                 //idKnownWords = dbCategory.IdFlashcard(category,sharedPreferences.getBoolean(showKnownWordsPreference, false));
                 setTitle("Fiszki Francuski "+category);
                 Update();
-
                 break;
             }
 
             case R.id.action_readDataFromGoogle: {
 
+                class handler2 extends Handler{
+                    @Override
+                    public void handleMessage(Message msg) {
+                        super.handleMessage(msg);
+                        if(msg.what==1)
+                        {
+                            Update();
+                            Toast.makeText(activity, "Wczytano dane z Google Drive", Toast.LENGTH_LONG).show();
+                        }
+                    }
+                }
+
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 builder.setTitle("Czy chcesz wczytać dane z Google Drive?");
 
                 builder.setPositiveButton("TAK", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        /*
-                        progressDialog = ProgressDialog.show(MainActivity.this, "Odczyt z Google Drive", "Wczytywanie");
-                        new Thread(new Runnable() {
-                            @Override
-                            public void run() {
-                                googleDriveHelper.ReadDataFromGoogleDrive(getActualCsvFile());
-                            }
-                        }).start();
-                        */
+                    public void onClick(DialogInterface dialog, int id)
+                    {
                         dbFlashcard.DeleteAllFlashcards();
                         dbFlashcard = new FlashcardHelper(activity,actualLanguageDataBase);
-                        dbCategory = new CategoryHelper(activity,actualLanguageDataBase);
-                        //new GoogleDriveRead(activity,getActualCsvFile()).execute("Read");
                         googleDriveRead = new GoogleDriveRead(activity,getActualCsvFile());
-
-                        handler = new Handler(){
-                            @Override
-                            public void handleMessage(Message msg) {
-                                if(msg.what==1)
-                                {
-                                    Update();
-                                    Toast.makeText(activity, "ZWczytano dane z Google Drive", Toast.LENGTH_LONG).show();
-                                }
-                            }
-                        };
+                        handler = new handler2();
                         googleDriveRead.setHandler(handler);
-
                         dialog.dismiss();
                     }
                 });
-                builder.setNegativeButton("NIE", null);
 
+                builder.setNegativeButton("NIE", null);
                 AlertDialog dialog = builder.create();
                 dialog.show();
 
@@ -378,20 +343,8 @@ public class MainActivity extends AppCompatActivity
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 builder.setTitle("Czy chcesz zapisać dane z Google Drive?");
                 builder.setPositiveButton("TAK", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        /*
-                        progressDialog = ProgressDialog.show(MainActivity.this, "Zapis na Google Drive", "Zapisywanie");
-
-                        new Thread(){
-                            @Override
-                            public void run()
-                            {
-                                googleDriveHelper.SaveDateOnGoogleDrive(getActualCsvFile());
-                            }
-                        }.start();
-                        */
-
-                        //new GoogleDriveWrite(activity,getActualCsvFile()).execute("Read");
+                    public void onClick(DialogInterface dialog, int id)
+                    {
                         googleDriveWrite = new GoogleDriveWrite(activity,getActualCsvFile());
                         dialog.dismiss();
                     }
@@ -481,16 +434,8 @@ public class MainActivity extends AppCompatActivity
 
             final int actualFlashcardNumber;
 
-            boolean showKnownWords = false;
-
             int countFlashcards;
-
-
-            String languageMode;
-
-            showKnownWords = sharedPreferences.getBoolean(showKnownWordsPreference, false);
-            languageMode = sharedPreferences.getString(languageModePreference, languageModeEngPl);
-
+            String languageMode = sharedPreferences.getString(languageModePreference, languageModeEngPl);
 
             tSentence1 = (TextView) rootView.findViewById(R.id.tSentence1);
             tSentence2 = (TextView) rootView.findViewById(R.id.tSentence2);
@@ -500,16 +445,12 @@ public class MainActivity extends AppCompatActivity
             bShow = (Button) rootView.findViewById(R.id.bShow);
             cbKnown = (CheckBox) rootView.findViewById(R.id.cbKnown);
             String actCategory = GetActualCategory();
-            countFlashcards = dbCategory.CountFlashcard(actCategory,sharedPreferences.getBoolean(showKnownWordsPreference,true));
+            countFlashcards = dbFlashcard.CountFlashcard(actCategory,sharedPreferences.getBoolean(showKnownWordsPreference,true));
 
             if (countFlashcards > 0)
             {
-                //countFlashcards1=countFlashcards;
-                //mSectionsPagerAdapter.notifyDataSetChanged();
                 actualFlashcardNumber = idKnownWords.get(randomNumbers[getArguments().getInt(ARG_SECTION_NUMBER)-1]);
-
                 Flashcard flashcard2 = dbFlashcard.GetFlashcard(actualFlashcardNumber);
-
 
                 if(languageMode.equals(languageModeEngPl))
                 {
@@ -566,27 +507,7 @@ public class MainActivity extends AppCompatActivity
             cbKnown.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-
-                    //if(sharedPreferences.getBoolean(showKnownWordsPreference, false))
-                      //  dbCategory.SetKnownWord(actualFlashcardNumber, cbKnown.isChecked());
-                    //else
-                    dbCategory.SetKnownWord(actualFlashcardNumber, cbKnown.isChecked());
-
-                    /*
-                    if(sharedPreferences.getBoolean(showKnownWordsPreference, false) && cbKnown.isChecked()==true)
-                    {
-
-                        idKnownWords.remove(actualFlashcardNumber);
-                    }
-                     else if(sharedPreferences.getBoolean(showKnownWordsPreference, false) && cbKnown.isChecked()==false)
-                    {
-                        idKnownWords.add(actualFlashcardNumber);
-                    }
-*/
-
-                    //countFlashcards1 = dbCategory.CountFlashcard(sharedPreferences.getString(actualCategoryEngPreference, "inne"),sharedPreferences.getBoolean(showKnownWordsPreference,true));
-                    ///mSectionsPagerAdapter.notifyDataSetChanged();
-
+                    dbFlashcard.SetKnownWord(actualFlashcardNumber, cbKnown.isChecked());
                 }
             });
 

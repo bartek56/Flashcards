@@ -29,7 +29,7 @@ public class AddWord extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         sCategory = (Spinner) findViewById(R.id.sCategory);
-        ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, MainActivity.dbCategory.GetCategoriesList());
+        ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, MainActivity.dbFlashcard.GetCategoriesList());
         dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         sCategory.setAdapter(dataAdapter);
 
@@ -49,7 +49,7 @@ public class AddWord extends AppCompatActivity {
 
         int id = MainActivity.dbFlashcard.GetIdEnglishWord(flashcard.getEngWord());
 
-        MainActivity.dbCategory.AddFlashcardToCategory(sCategory.getSelectedItem().toString(),id);
+        MainActivity.dbFlashcard.AddFlashcardToCategory(sCategory.getSelectedItem().toString(),id);
         Toast.makeText(getApplicationContext(), "Dodano fiszkę", Toast.LENGTH_SHORT).show();
 
         Intent i=new Intent(this, MainActivity.class);

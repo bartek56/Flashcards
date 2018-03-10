@@ -424,7 +424,7 @@ private ResultCallback<DriveApi.DriveContentsResult> readFromGoogleDriveResultCa
                             {
                                 if(!allText.equals(category))
                                 {
-                                    MainActivity.dbCategory.CreateCategory(allText);
+                                    MainActivity.dbFlashcard.CreateCategory(allText);
                                     MainActivity.dbFlashcard.AddFlashcardsFromQueue(engWord, plWord, engSentence, plSentence);
                                     //MainActivity.dbCategory.AddFlashcardsToCategoryFromQueue(idFlashcardQueue,category);
                                     category=allText;

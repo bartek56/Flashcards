@@ -44,7 +44,7 @@ public class Settings extends AppCompatActivity {
         sCategory = (Spinner) findViewById(R.id.sCategory);
         ArrayAdapter<String> categoryDataAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item);
         //categoryDataAdapter.add("Wszystkie");
-        categoryDataAdapter.addAll(MainActivity.dbCategory.GetCategoriesList());
+        categoryDataAdapter.addAll(MainActivity.dbFlashcard.GetCategoriesList());
         categoryDataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         sCategory.setAdapter(categoryDataAdapter);
 
