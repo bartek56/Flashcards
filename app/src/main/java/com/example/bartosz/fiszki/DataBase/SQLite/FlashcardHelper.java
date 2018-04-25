@@ -292,10 +292,10 @@ public class FlashcardHelper extends Database {
         SQLiteDatabase db = getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put("known",known);
-        String actualCategory = MainActivity.GetActualCategory();
-
+        String actualCategory = MainActivity.GetActualCategory().replace(" ","_");
         db.update(actualCategory,values,"idFlashcard="+id,null);
         db.close();
+
     }
 
     public int CountFlashcard(String category, boolean showAllWord){
