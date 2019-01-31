@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayDeque;
+import java.util.Date;
 import java.util.Queue;
 
 import static com.example.bartosz.fiszki.MainActivity.activity;
@@ -68,10 +69,13 @@ public class GoogleDriveRead extends GoogleDriveConnection
                         fileExist=true;
                         driveId = m.getDriveId();
                         driveFile = m.getDriveId().asDriveFile();
+
+                        modificationDate = m.getModifiedDate();
+
+                        System.out.println(modificationDate.toString());
+
                         driveFile.open(mGoogleApiClient, DriveFile.MODE_READ_ONLY, null)
                                     .setResultCallback(readFromGoogleDriveResultCallBack);
-
-
 
                         break;
                     }

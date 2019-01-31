@@ -24,8 +24,9 @@
     <string name="plEng">Pl-Eng</string>
     <string name="engPl">Eng-Pl</string>
     <string name="deleteWord">Czy usunąć słowo?</string>
-    <string name="readFromGoogle">Wczytaj dane z Google</string>
-    <string name="writeToGoogle">Zapisz dane na Google</string>
+    <string name="readFromGoogle">Wczytaj dane</string>
+    <string name="writeToGoogle">Zapisz dane</string>
+    <string name="backup">Synchronizacja</string>
     <string name="language">Język</string>
 
     <string name="english">angielski</string>
@@ -33,5 +34,8 @@
     <string name="german">niemiecki</string>
 
     <string name="section_format">Hello World from section: %1$d</string>
+    <string name="title_activity_backup">BackupActivity</string>
+    <string name="last_synchorization">Ostatnia synchronizacja</string>
+
 
 </resources>

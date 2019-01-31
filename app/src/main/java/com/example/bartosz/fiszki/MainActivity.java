@@ -64,6 +64,8 @@ public class MainActivity extends AppCompatActivity
     public static final String frLanguageCsvFile = "flashcardsFr.txt";
     public static final String languageModeEngPl = "Eng-Pl";
     public static final String languageModePlEng = "Pl-Eng";
+    public static final String dateModificationPreference = "dateModification";
+
     private static int randomNumbers[];
     private static SectionsPagerAdapter mSectionsPagerAdapter;
     private ViewPager mViewPager;
@@ -73,8 +75,7 @@ public class MainActivity extends AppCompatActivity
     public static String actualLanguageDataBase;
     private static List<Integer> idKnownWords = new ArrayList<>();
     private android.os.Handler handler;
-    private GoogleDriveRead googleDriveRead;
-    private GoogleDriveWrite googleDriveWrite;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,6 +89,7 @@ public class MainActivity extends AppCompatActivity
         sharedPreferences = getSharedPreferences(actualNumberPreference, Activity.MODE_PRIVATE);
         sharedPreferences = getSharedPreferences(languageModePreference, Activity.MODE_PRIVATE);
         sharedPreferences = getSharedPreferences(languagePreference, Activity.MODE_PRIVATE);
+        sharedPreferences = getSharedPreferences(dateModificationPreference, Activity.MODE_PRIVATE);
 
         actualLanguageDataBase = sharedPreferences.getString(languagePreference, engLanguageDatabase);
 
@@ -174,8 +176,6 @@ public class MainActivity extends AppCompatActivity
         boolean showKnownWords = sharedPreferences.getBoolean(showKnownWordsPreference,true);
 
         dbFlashcard = new FlashcardHelper(this, actualLanguageDataBase);
-
-
 
         countFlashcards1 = dbFlashcard.CountFlashcard(GetActualCategory(),showKnownWords);
         if (countFlashcards1 == 0)
@@ -302,6 +302,15 @@ public class MainActivity extends AppCompatActivity
                 break;
             }
 
+            case R.id.action_backup: {
+                Intent intent = new Intent(this, BackupActivity.class);
+                startActivity(intent);
+                break;
+
+            }
+
+
+/*
             case R.id.action_readDataFromGoogle: {
 
                 class handler2 extends Handler{
@@ -357,6 +366,7 @@ public class MainActivity extends AppCompatActivity
 
                 break;
             }
+            */
         }
 
         return super.onOptionsItemSelected(item);

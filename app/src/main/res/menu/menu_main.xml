@@ -48,16 +48,10 @@
 
         </item>
 
-    <item android:id="@+id/action_readDataFromGoogle"
-        android:title="@string/readFromGoogle"
+    <item android:id="@+id/action_backup"
+        android:title="@string/backup"
         android:orderInCategory="100"
         app:showAsAction="never" />
-
-    <item android:id="@+id/action_writeDataToGoogle"
-        android:title="@string/writeToGoogle"
-        android:orderInCategory="100"
-        app:showAsAction="never" />
-
 
     <item android:id="@+id/action_aboutMe"
         android:title="@string/action_aboutMe"

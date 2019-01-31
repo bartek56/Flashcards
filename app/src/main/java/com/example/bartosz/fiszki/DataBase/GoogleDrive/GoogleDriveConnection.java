@@ -19,6 +19,8 @@ import com.google.android.gms.drive.query.Filters;
 import com.google.android.gms.drive.query.Query;
 import com.google.android.gms.drive.query.SearchableField;
 
+import java.util.Date;
+
 import static com.example.bartosz.fiszki.MainActivity.activity;
 
 /**
@@ -33,6 +35,7 @@ public class GoogleDriveConnection implements GoogleApiClient.ConnectionCallback
 
     protected GoogleApiClient mGoogleApiClient;
     protected String fileName;
+    protected Date modificationDate;
     protected DriveId driveId;
     protected DriveFile driveFile;
     protected Context context;
@@ -66,7 +69,6 @@ public class GoogleDriveConnection implements GoogleApiClient.ConnectionCallback
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
         System.out.println("connection failed: " + connectionResult.getErrorMessage() + " " +connectionResult.getErrorCode());
 
-
         if (!connectionResult.hasResolution()) {
             GoogleApiAvailability.getInstance().getErrorDialog(activity, connectionResult.getErrorCode(), 0).show();
             System.err.println("connection suspend "+ connectionResult.getErrorMessage() + " " +connectionResult.getErrorCode());
@@ -86,8 +88,6 @@ public class GoogleDriveConnection implements GoogleApiClient.ConnectionCallback
     {
         Query query = new Query.Builder()
                 .addFilter(Filters.eq(SearchableField.MIME_TYPE, "text/plain"))
-                //.addFilter(Filters.eq(CustomPropertyKey.PRIVATE,"flashcards"))
-                //.addFilter(Filters.
                 .build();
 
         return query;
