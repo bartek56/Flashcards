@@ -76,7 +76,7 @@ public class MainActivity extends AppCompatActivity
     public static String actualLanguageDataBase;
     private static List<Integer> idKnownWords = new ArrayList<>();
     private android.os.Handler handler;
-
+    private GoogleDriveUpdate googleDriveUpdate;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -131,31 +131,7 @@ public class MainActivity extends AppCompatActivity
         mViewPager.setAdapter(mSectionsPagerAdapter);
         activity = this;
 
-        GoogleDriveUpdate googleDriveUpdate = new GoogleDriveUpdate(activity, getActualCsvFile());
-
-        if(googleDriveUpdate.modified)
-        {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle("Słówka uległy modifikacji przez inny program, czy chcesz je aktualizować?");
-
-            builder.setPositiveButton("TAK", new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialog, int id)
-                {
-                    /*
-                    dbFlashcard.DeleteAllFlashcards();
-                    dbFlashcard = new FlashcardHelper(activity,actualLanguageDataBase);
-                    googleDriveRead = new GoogleDriveRead(activity,getActualCsvFile());
-                    handler = new handler2();
-                    googleDriveRead.setHandler(handler);
-                    dialog.dismiss();
-                    */
-                }
-            });
-
-            builder.setNegativeButton("NIE", null);
-            AlertDialog dialog = builder.create();
-            dialog.show();
-        }
+        googleDriveUpdate = new GoogleDriveUpdate(activity, getActualCsvFile());
 
     }
 

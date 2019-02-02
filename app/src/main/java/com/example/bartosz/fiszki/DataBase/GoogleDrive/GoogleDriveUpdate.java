@@ -1,6 +1,8 @@
 package com.example.bartosz.fiszki.DataBase.GoogleDrive;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 import android.widget.Toast;
@@ -20,7 +22,7 @@ import static com.example.bartosz.fiszki.MainActivity.sharedPreferences;
 
 public class GoogleDriveUpdate extends GoogleDriveConnection{
 
-    public boolean modified = false;
+    public boolean check = false;
     public GoogleDriveUpdate(Context context, String fileName) {
         super(context, fileName);
         isLastModification();
@@ -42,7 +44,34 @@ public class GoogleDriveUpdate extends GoogleDriveConnection{
                     if (title.equals(fileName)) {
                         String modificationDate = m.getModifiedDate().toString();
                         String lastModificationDate = sharedPreferences.getString(MainActivity.dateModificationPreference,"");
-                        modified = !modificationDate.equals(lastModificationDate);
+                        System.out.println("update last: "+lastModificationDate);
+                        System.out.println("update new: "+modificationDate);
+                        check = !modificationDate.equals(lastModificationDate);
+
+                        if(check)
+                        {
+                            AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+                            builder.setTitle("Słówka uległy modifikacji przez inny program, czy chcesz je aktualizować?");
+
+                            builder.setPositiveButton("TAK", new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id)
+                                {
+                    /*
+                    dbFlashcard.DeleteAllFlashcards();
+                    dbFlashcard = new FlashcardHelper(activity,actualLanguageDataBase);
+                    googleDriveRead = new GoogleDriveRead(activity,getActualCsvFile());
+                    handler = new handler2();
+                    googleDriveRead.setHandler(handler);
+                    dialog.dismiss();
+                    */
+                                }
+                            });
+
+                            builder.setNegativeButton("NIE", null);
+                            AlertDialog dialog = builder.create();
+                            dialog.show();
+                        }
+
                         break;
                     }
                 }

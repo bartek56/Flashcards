@@ -70,6 +70,7 @@ public class GoogleDriveWrite extends GoogleDriveConnection {
                     String title = m.getTitle();
                     if (title.equals(fileName)) {
                         modificationDate = m.getModifiedDate();
+                        System.out.println("write: "+modificationDate.toString());
                         SharedPreferences.Editor preferencesEditor = sharedPreferences.edit();
                         preferencesEditor.putString(MainActivity.dateModificationPreference,modificationDate.toString());
                         preferencesEditor.commit();

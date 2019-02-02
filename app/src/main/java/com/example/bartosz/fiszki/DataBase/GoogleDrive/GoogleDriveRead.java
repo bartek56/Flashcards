@@ -2,6 +2,7 @@ package com.example.bartosz.fiszki.DataBase.GoogleDrive;
 
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -25,6 +26,7 @@ import java.util.Date;
 import java.util.Queue;
 
 import static com.example.bartosz.fiszki.MainActivity.activity;
+import static com.example.bartosz.fiszki.MainActivity.sharedPreferences;
 
 /**
  * Created by Bartek on 2018-03-04.
@@ -65,14 +67,20 @@ public class GoogleDriveRead extends GoogleDriveConnection
                     String title = m.getTitle();
                     if (title.equals(fileName))
                     {
-
                         fileExist=true;
                         driveId = m.getDriveId();
                         driveFile = m.getDriveId().asDriveFile();
 
                         modificationDate = m.getModifiedDate();
+                        SharedPreferences.Editor preferencesEditor = sharedPreferences.edit();
+                        preferencesEditor.putString(MainActivity.dateModificationPreference,modificationDate.toString());
+                        preferencesEditor.commit();
 
-                        System.out.println(modificationDate.toString());
+                        String modificationDate = m.getModifiedDate().toString();
+                        String lastModificationDate = sharedPreferences.getString(MainActivity.dateModificationPreference,"");
+                        System.out.println("read last: "+lastModificationDate);
+                        System.out.println("read new: "+modificationDate);
+
 
                         driveFile.open(mGoogleApiClient, DriveFile.MODE_READ_ONLY, null)
                                     .setResultCallback(readFromGoogleDriveResultCallBack);
@@ -187,7 +195,6 @@ public class GoogleDriveRead extends GoogleDriveConnection
                             }
                         }
                     }
-
 
                     reader.close();
                     inputStream.close();
