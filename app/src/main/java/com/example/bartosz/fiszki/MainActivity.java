@@ -33,6 +33,7 @@ import android.widget.Toast;
 
 
 import com.example.bartosz.fiszki.DataBase.GoogleDrive.GoogleDriveRead;
+import com.example.bartosz.fiszki.DataBase.GoogleDrive.GoogleDriveUpdate;
 import com.example.bartosz.fiszki.DataBase.GoogleDrive.GoogleDriveWrite;
 import com.example.bartosz.fiszki.DataBase.SQLite.FlashcardHelper;
 import com.example.bartosz.fiszki.DataBase.SQLite.Tables.Flashcard;
@@ -129,6 +130,10 @@ public class MainActivity extends AppCompatActivity
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
         activity = this;
+
+        GoogleDriveUpdate googleDriveUpdate = new GoogleDriveUpdate(activity, getActualCsvFile());
+        googleDriveUpdate.isLastModification();
+
     }
 
     public static String getActualCsvFile(){
