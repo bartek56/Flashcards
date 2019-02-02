@@ -132,7 +132,30 @@ public class MainActivity extends AppCompatActivity
         activity = this;
 
         GoogleDriveUpdate googleDriveUpdate = new GoogleDriveUpdate(activity, getActualCsvFile());
-        googleDriveUpdate.isLastModification();
+
+        if(googleDriveUpdate.modified)
+        {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("Słówka uległy modifikacji przez inny program, czy chcesz je aktualizować?");
+
+            builder.setPositiveButton("TAK", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id)
+                {
+                    /*
+                    dbFlashcard.DeleteAllFlashcards();
+                    dbFlashcard = new FlashcardHelper(activity,actualLanguageDataBase);
+                    googleDriveRead = new GoogleDriveRead(activity,getActualCsvFile());
+                    handler = new handler2();
+                    googleDriveRead.setHandler(handler);
+                    dialog.dismiss();
+                    */
+                }
+            });
+
+            builder.setNegativeButton("NIE", null);
+            AlertDialog dialog = builder.create();
+            dialog.show();
+        }
 
     }
 
@@ -233,8 +256,6 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
-
-
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
@@ -313,65 +334,6 @@ public class MainActivity extends AppCompatActivity
                 break;
 
             }
-
-
-/*
-            case R.id.action_readDataFromGoogle: {
-
-                class handler2 extends Handler{
-                    @Override
-                    public void handleMessage(Message msg) {
-                        super.handleMessage(msg);
-                        if(msg.what==1)
-                        {
-                            Update();
-                            Toast.makeText(activity, "Wczytano dane z Google Drive", Toast.LENGTH_LONG).show();
-                        }
-                    }
-                }
-
-                AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setTitle("Czy chcesz wczytać dane z Google Drive?");
-
-                builder.setPositiveButton("TAK", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id)
-                    {
-                        dbFlashcard.DeleteAllFlashcards();
-                        dbFlashcard = new FlashcardHelper(activity,actualLanguageDataBase);
-                        googleDriveRead = new GoogleDriveRead(activity,getActualCsvFile());
-                        handler = new handler2();
-                        googleDriveRead.setHandler(handler);
-                        dialog.dismiss();
-                    }
-                });
-
-                builder.setNegativeButton("NIE", null);
-                AlertDialog dialog = builder.create();
-                dialog.show();
-
-                break;
-            }
-
-            case R.id.action_writeDataToGoogle: {
-
-                AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setTitle("Czy chcesz zapisać dane z Google Drive?");
-                builder.setPositiveButton("TAK", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id)
-                    {
-                        googleDriveWrite = new GoogleDriveWrite(activity,getActualCsvFile());
-                        dialog.dismiss();
-                    }
-                });
-
-                builder.setNegativeButton("NIE", null);
-
-                AlertDialog dialog = builder.create();
-                dialog.show();
-
-                break;
-            }
-            */
         }
 
         return super.onOptionsItemSelected(item);
@@ -528,7 +490,5 @@ public class MainActivity extends AppCompatActivity
 
             return rootView;
         }
-
     }
-
 }

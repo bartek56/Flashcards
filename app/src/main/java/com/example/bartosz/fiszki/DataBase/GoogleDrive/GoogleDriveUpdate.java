@@ -20,13 +20,14 @@ import static com.example.bartosz.fiszki.MainActivity.sharedPreferences;
 
 public class GoogleDriveUpdate extends GoogleDriveConnection{
 
+    public boolean modified = false;
     public GoogleDriveUpdate(Context context, String fileName) {
         super(context, fileName);
+        isLastModification();
     }
 
-    public boolean isLastModification()
+    public void isLastModification()
     {
-        final boolean modified = false;
         Drive.DriveApi.query(mGoogleApiClient, QuerySearchFile()).setResultCallback(new ResultCallback<DriveApi.MetadataBufferResult>() {
             @Override
             public void onResult(@NonNull DriveApi.MetadataBufferResult result) {
@@ -41,26 +42,14 @@ public class GoogleDriveUpdate extends GoogleDriveConnection{
                     if (title.equals(fileName)) {
                         String modificationDate = m.getModifiedDate().toString();
                         String lastModificationDate = sharedPreferences.getString(MainActivity.dateModificationPreference,"");
-                        if(!modificationDate.equals(lastModificationDate))
-                        {
-                            System.out.println("update");
-                        }
-                        else
-                        {
-                            System.out.println("not modified");
-                        }
-
+                        modified = !modificationDate.equals(lastModificationDate);
                         break;
                     }
                 }
-
                 mGoogleApiClient.disconnect();
-
                 result.release();
             }
         });
-
-        return modified;
     }
 
 }
