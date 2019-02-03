@@ -5,8 +5,6 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
@@ -67,9 +65,9 @@ public class BackupActivity extends AppCompatActivity {
             {
                 dbFlashcard.DeleteAllFlashcards();
                 dbFlashcard = new FlashcardHelper(activity,actualLanguageDataBase);
-                googleDriveRead = new GoogleDriveRead(activity,getActualCsvFile());
+               // googleDriveRead = new GoogleDriveRead(activity,getActualCsvFile());
                 handler = new handler2();
-                googleDriveRead.setHandler(handler);
+                //googleDriveRead.setHandler(handler);
                 dialog.dismiss();
             }
         });
@@ -85,7 +83,7 @@ public class BackupActivity extends AppCompatActivity {
         builder.setPositiveButton("TAK", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id)
             {
-                googleDriveWrite = new GoogleDriveWrite(activity,getActualCsvFile());
+                //googleDriveWrite = new GoogleDriveWrite(activity,getActualCsvFile());
                 dialog.dismiss();
             }
         });

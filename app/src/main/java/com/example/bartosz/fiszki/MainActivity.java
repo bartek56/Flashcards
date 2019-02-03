@@ -9,6 +9,7 @@ import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
@@ -32,6 +33,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 
+import com.example.bartosz.fiszki.DataBase.GoogleDrive.GoogleDriveConnection;
 import com.example.bartosz.fiszki.DataBase.GoogleDrive.GoogleDriveRead;
 import com.example.bartosz.fiszki.DataBase.GoogleDrive.GoogleDriveUpdate;
 import com.example.bartosz.fiszki.DataBase.GoogleDrive.GoogleDriveWrite;
@@ -41,6 +43,9 @@ import com.example.bartosz.fiszki.DataBase.SQLite.RandomNumber;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.example.bartosz.fiszki.DataBase.GoogleDrive.GoogleDriveConnection.REQUEST_CODE_OPEN_DOCUMENT;
+import static com.example.bartosz.fiszki.DataBase.GoogleDrive.GoogleDriveConnection.REQUEST_CODE_SIGN_IN;
 
 public class MainActivity extends AppCompatActivity
 {
@@ -77,6 +82,29 @@ public class MainActivity extends AppCompatActivity
     private static List<Integer> idKnownWords = new ArrayList<>();
     private android.os.Handler handler;
     private GoogleDriveUpdate googleDriveUpdate;
+    private GoogleDriveConnection googleDriveConnection;
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent resultData) {
+        switch (requestCode) {
+            case REQUEST_CODE_SIGN_IN:
+                if (resultCode == Activity.RESULT_OK && resultData != null) {
+                    googleDriveConnection.handleSignInResult(resultData);
+                }
+                break;
+
+            case REQUEST_CODE_OPEN_DOCUMENT:
+                if (resultCode == Activity.RESULT_OK && resultData != null) {
+                    Uri uri = resultData.getData();
+                    if (uri != null) {
+                        //openFileFromFilePicker(uri);
+                    }
+                }
+                break;
+        }
+
+        super.onActivityResult(requestCode, resultCode, resultData);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -131,8 +159,9 @@ public class MainActivity extends AppCompatActivity
         mViewPager.setAdapter(mSectionsPagerAdapter);
         activity = this;
 
-        googleDriveUpdate = new GoogleDriveUpdate(activity, getActualCsvFile());
-
+//        googleDriveUpdate = new GoogleDriveUpdate(activity, getActualCsvFile());
+        googleDriveConnection = new GoogleDriveConnection();
+        googleDriveConnection.requestSignIn();
     }
 
     public static String getActualCsvFile(){

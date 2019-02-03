@@ -2,95 +2,86 @@ package com.example.bartosz.fiszki.DataBase.GoogleDrive;
 
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.IntentSender;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.RestrictTo;
 import android.util.Log;
+import android.widget.EditText;
 import android.widget.Toast;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GoogleApiAvailability;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.drive.Drive;
-import com.google.android.gms.drive.DriveFile;
-import com.google.android.gms.drive.DriveId;
-import com.google.android.gms.drive.query.Filters;
-import com.google.android.gms.drive.query.Query;
-import com.google.android.gms.drive.query.SearchableField;
-
+import java.util.Collections;
 import java.util.Date;
 
+import static android.content.ContentValues.TAG;
 import static com.example.bartosz.fiszki.MainActivity.activity;
+
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.api.Scope;
+import com.google.api.client.extensions.android.http.AndroidHttp;
+import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
+import com.google.api.client.json.gson.GsonFactory;
+import com.google.api.services.drive.Drive;
+import com.google.api.services.drive.DriveScopes;
+import com.google.api.services.drive.model.File;
+
+import com.google.api.services.drive.DriveScopes;
 
 /**
  * Created by Bartek on 2018-03-10.
  */
 
-public class GoogleDriveConnection implements GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener {
+public class GoogleDriveConnection {
 
-    private static final int REQUEST_CODE_RESOLUTION = 1;
-    private static final int NEXT_AVAILABLE_REQUEST_CODE = 2;
+    private static final String TAG = "GoogleDriveConnection";
 
-    protected GoogleApiClient mGoogleApiClient;
-    protected String fileName;
-    protected Date modificationDate;
-    protected DriveId driveId;
-    protected DriveFile driveFile;
-    protected Context context;
+    public static final int REQUEST_CODE_SIGN_IN = 1;
+    public static final int REQUEST_CODE_OPEN_DOCUMENT = 2;
 
+    private String mOpenFileId;
 
-    public GoogleDriveConnection(Context context, String fileName) {
-        this.fileName = fileName;
-        this.context = context;
+    public void requestSignIn() {
+        Log.d(TAG, "Requesting sign-in");
 
-        mGoogleApiClient = new GoogleApiClient.Builder(context)
-                .addApi(Drive.API)
-                .addScope(Drive.SCOPE_FILE)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .build();
+        GoogleSignInOptions signInOptions =
+                new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                        .requestEmail()
+                        .requestScopes(new Scope(DriveScopes.DRIVE_FILE))
+                        .build();
+        GoogleSignInClient client = GoogleSignIn.getClient(activity, signInOptions);
 
-        mGoogleApiClient.connect();
+        activity.startActivityForResult(client.getSignInIntent(), REQUEST_CODE_SIGN_IN);
     }
 
-    @Override
-    public void onConnected(@Nullable Bundle bundle) {
-        System.out.println("connected");
-    }
-
-    @Override
-    public void onConnectionSuspended(int i) {
-        System.out.println("connection suspend");
-    }
-
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        System.out.println("connection failed: " + connectionResult.getErrorMessage() + " " +connectionResult.getErrorCode());
-
-        if (!connectionResult.hasResolution()) {
-            GoogleApiAvailability.getInstance().getErrorDialog(activity, connectionResult.getErrorCode(), 0).show();
-            System.err.println("connection suspend "+ connectionResult.getErrorMessage() + " " +connectionResult.getErrorCode());
-            return;
-        }
-        try {
-            connectionResult.startResolutionForResult(activity, REQUEST_CODE_RESOLUTION);
-            Toast.makeText(activity, "Wybierz konto i spróbuj ponownie", Toast.LENGTH_LONG).show();
-        } catch (IntentSender.SendIntentException ex) {
-
-            Log.e("INFO", "Exception while starting resolution activity", ex);
-        }
-    }
+    public void handleSignInResult(Intent result) {
+        GoogleSignIn.getSignedInAccountFromIntent(result)
+                .addOnSuccessListener(googleAccount -> {
+                    Log.d(TAG, "Signed in as " + googleAccount.getEmail());
 
 
-    protected Query QuerySearchFile()
-    {
-        Query query = new Query.Builder()
-                .addFilter(Filters.eq(SearchableField.MIME_TYPE, "text/plain"))
-                .build();
+                    // Use the authenticated account to sign in to the Drive service.
+                    GoogleAccountCredential credential =
+                            GoogleAccountCredential.usingOAuth2(
+                                    activity, Collections.singleton(DriveScopes.DRIVE_FILE));
+                    credential.setSelectedAccount(googleAccount.getAccount());
+                    Drive googleDriveService =
+                            new Drive.Builder(
+                                    AndroidHttp.newCompatibleTransport(),
+                                    new GsonFactory(),
+                                    credential)
+                                    .setApplicationName("Drive API Migration")
+                                    .build();
 
-        return query;
+                    // The DriveServiceHelper encapsulates all REST API and SAF functionality.
+                    // Its instantiation is required before handling any onClick actions.
+                    //mDriveServiceHelper = new DriveServiceHelper(googleDriveService);
+
+                });
+                //.addOnFailureListener(exception -> Log.e(TAG, "Unable to sign in.", exception));
     }
 
 }
