@@ -10,6 +10,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
@@ -162,6 +163,9 @@ public class MainActivity extends AppCompatActivity
 //        googleDriveUpdate = new GoogleDriveUpdate(activity, getActualCsvFile());
         googleDriveConnection = new GoogleDriveConnection();
         googleDriveConnection.requestSignIn();
+
+
+
     }
 
     public static String getActualCsvFile(){
@@ -258,6 +262,8 @@ public class MainActivity extends AppCompatActivity
         getMenuInflater().inflate(R.menu.menu_main, menu);
         itemSetting = menu.findItem(R.id.action_editWord);
         itemSetting.setVisible(false);
+
+
         return true;
     }
 
@@ -470,6 +476,9 @@ public class MainActivity extends AppCompatActivity
             bShow.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+
+
+
                     if (tWord2.getVisibility() == View.VISIBLE) {
                         tWord2.setVisibility(View.INVISIBLE);
                         tSentence2.setVisibility(View.INVISIBLE);
