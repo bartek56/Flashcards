@@ -11,6 +11,8 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.bartosz.fiszki.DataBase.GoogleDrive.GoogleDriveConnection;
+import com.example.bartosz.fiszki.DataBase.GoogleDrive.GoogleDriveHelper;
 import com.example.bartosz.fiszki.DataBase.GoogleDrive.GoogleDriveRead;
 import com.example.bartosz.fiszki.DataBase.GoogleDrive.GoogleDriveWrite;
 import com.example.bartosz.fiszki.DataBase.SQLite.FlashcardHelper;
@@ -25,9 +27,7 @@ public class BackupActivity extends AppCompatActivity {
 
 
     private TextView synchronizationDate;
-    private android.os.Handler handler;
-    private GoogleDriveRead googleDriveRead;
-    private GoogleDriveWrite googleDriveWrite;
+    private GoogleDriveHelper googleDriveHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,24 +38,13 @@ public class BackupActivity extends AppCompatActivity {
         String dateModification = sharedPreferences.getString(MainActivity.dateModificationPreference,"21-02-2019");
 
         synchronizationDate.setText(dateModification);
-
+        googleDriveHelper = new GoogleDriveHelper(GoogleDriveConnection.driveService);
 
         //String languageMode = sharedPreferences.getString(MainActivity.languageModePreference,MainActivity.languageModeEngPl);
-
 
     }
 
     public void ReadDataButtonOnClick(View view) {
-        class handler2 extends Handler {
-            @Override
-            public void handleMessage(Message msg) {
-                super.handleMessage(msg);
-                if(msg.what==1)
-                {
-                    Toast.makeText(activity, "Wczytano dane z Google Drive", Toast.LENGTH_LONG).show();
-                }
-            }
-        }
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Czy chcesz wczytać dane z Google Drive?");
@@ -65,9 +54,7 @@ public class BackupActivity extends AppCompatActivity {
             {
                 dbFlashcard.DeleteAllFlashcards();
                 dbFlashcard = new FlashcardHelper(activity,actualLanguageDataBase);
-               // googleDriveRead = new GoogleDriveRead(activity,getActualCsvFile());
-                handler = new handler2();
-                //googleDriveRead.setHandler(handler);
+                googleDriveHelper.ReadFlashcardsHelper(getActualCsvFile());
                 dialog.dismiss();
             }
         });
@@ -83,7 +70,7 @@ public class BackupActivity extends AppCompatActivity {
         builder.setPositiveButton("TAK", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id)
             {
-                //googleDriveWrite = new GoogleDriveWrite(activity,getActualCsvFile());
+                googleDriveHelper.SaveFlashcardsHelper(getActualCsvFile());
                 dialog.dismiss();
             }
         });

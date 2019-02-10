@@ -1,23 +1,32 @@
 package com.example.bartosz.fiszki.DataBase.GoogleDrive;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.util.Log;
+
+import java.io.IOException;
 import java.util.Collections;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 import static com.example.bartosz.fiszki.MainActivity.activity;
+import static com.example.bartosz.fiszki.MainActivity.sharedPreferences;
 
+import com.example.bartosz.fiszki.MainActivity;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.Scope;
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
 import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
+import com.google.api.client.http.ByteArrayContent;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.DriveScopes;
 import com.google.api.services.drive.model.File;
+import com.google.api.services.drive.model.FileList;
 
 /**
  * Created by Bartek on 2018-03-10.
@@ -30,14 +39,13 @@ public class GoogleDriveConnection {
     public static final int REQUEST_CODE_SIGN_IN = 1;
     public static final int REQUEST_CODE_OPEN_DOCUMENT = 2;
 
-    private String mOpenFileId;
-    private GoogleDriveHelper googleDriveHelper;
-    private Drive driveService;
+    private String databaseFileId;
+    public static Drive driveService;
     private final Executor mExecutor = Executors.newSingleThreadExecutor();
+
 
     public void requestSignIn() {
         Log.d(TAG, "Requesting sign-in");
-
 
         GoogleSignInOptions signInOptions =
                 new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -50,11 +58,10 @@ public class GoogleDriveConnection {
 
     }
 
-    public void handleSignInResult(Intent result) {
+    public void handleSignInResult(Intent result, String fileName) {
         GoogleSignIn.getSignedInAccountFromIntent(result)
                 .addOnSuccessListener(googleAccount -> {
                     Log.d(TAG, "Signed in as " + googleAccount.getEmail());
-
                     // Use the authenticated account to sign in to the Drive service.
                     GoogleAccountCredential credential =
                             GoogleAccountCredential.usingOAuth2(
@@ -68,43 +75,83 @@ public class GoogleDriveConnection {
                                     .setApplicationName("Flashcards")
                                     .build();
 
-                    googleDriveHelper = new GoogleDriveHelper(googleDriveService);
-
-                    createFile();
-
+                    driveService = googleDriveService;
+                    checkIfFileExist(fileName);
 
                 }).addOnFailureListener(exception -> Log.e(TAG, "Unable to sign in.", exception));
     }
 
-    public void createFile() {
-        if (googleDriveHelper != null) {
+
+
+    private void checkIfFileExist(String fileName) {
+
+            Log.d(TAG, "Querying for files.");
+
+            queryFiles()
+                    .addOnSuccessListener(fileList -> {
+                        for (File file : fileList.getFiles()) {
+                            System.out.println(file.getName());
+                            if(file.getName().equals(fileName))
+                            {
+                                databaseFileId = file.getId();
+                                Log.d(TAG, "file exist "+databaseFileId);
+                                SharedPreferences.Editor preferencesEditor = sharedPreferences.edit();
+                                preferencesEditor.putString(MainActivity.datebaseFileIdPreference,databaseFileId);
+                                preferencesEditor.commit();
+                                break;
+                            }
+                        }
+
+                        if(databaseFileId==null)
+                        {
+                            Log.d(TAG, "file doesn't exist");
+                            createFileHelper(fileName);
+                        }
+                    })
+                    .addOnFailureListener(exception -> Log.e(TAG, "Unable to query files.", exception));
+
+    }
+
+    public Task<FileList> queryFiles() {
+        return Tasks.call(mExecutor, () ->
+                driveService.files().list().setSpaces("drive").execute());
+    }
+
+    public void createFileHelper(String fileName) {
+
             Log.d(TAG, "Creating a file.");
 
-            googleDriveHelper.createFile()
-                    .addOnSuccessListener(fileId -> System.out.println(fileId))
+            createFile(fileName)
+                    .addOnSuccessListener(fileId -> Log.d(TAG, fileId))
                     .addOnFailureListener(exception ->
                             Log.e(TAG, "Couldn't create file.", exception));
-        }
+
     }
 
 
-    private void query() {
-        if (googleDriveHelper != null) {
-            Log.d(TAG, "Querying for files.");
+    public Task<String> createFile(String fileName) {
+        return Tasks.call(mExecutor,() -> {
 
-            googleDriveHelper.queryFiles()
-                    .addOnSuccessListener(fileList -> {
-                        StringBuilder builder = new StringBuilder();
-                        for (File file : fileList.getFiles()) {
-                            builder.append(file.getName()).append("\n");
-                            System.out.println(file.getName());
-                        }
-                        String fileNames = builder.toString();
+            File metadata = new File()
+                    .setParents(Collections.singletonList("root"))
+                    .setMimeType("text/plain")
+                    .setName(fileName);
 
-                        System.out.println(fileNames);
-                    })
-                    .addOnFailureListener(exception -> Log.e(TAG, "Unable to query files.", exception));
-        }
+            File googleFile=null;
+            try {
+                String content = "a";
+                ByteArrayContent contentStream = ByteArrayContent.fromString("text/plain", content);
+                googleFile = driveService.files().create(metadata, contentStream).execute();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            if (googleFile == null) {
+                throw new IOException("Null result when requesting file creation.");
+            }
+
+            return googleFile.getId();
+        });
     }
 
 }

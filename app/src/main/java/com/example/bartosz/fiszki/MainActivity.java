@@ -35,6 +35,7 @@ import android.widget.Toast;
 
 
 import com.example.bartosz.fiszki.DataBase.GoogleDrive.GoogleDriveConnection;
+import com.example.bartosz.fiszki.DataBase.GoogleDrive.GoogleDriveHelper;
 import com.example.bartosz.fiszki.DataBase.GoogleDrive.GoogleDriveRead;
 import com.example.bartosz.fiszki.DataBase.GoogleDrive.GoogleDriveUpdate;
 import com.example.bartosz.fiszki.DataBase.GoogleDrive.GoogleDriveWrite;
@@ -72,6 +73,7 @@ public class MainActivity extends AppCompatActivity
     public static final String languageModeEngPl = "Eng-Pl";
     public static final String languageModePlEng = "Pl-Eng";
     public static final String dateModificationPreference = "dateModification";
+    public static final String datebaseFileIdPreference = "datavaseFileId";
 
     private static int randomNumbers[];
     private static SectionsPagerAdapter mSectionsPagerAdapter;
@@ -82,7 +84,6 @@ public class MainActivity extends AppCompatActivity
     public static String actualLanguageDataBase;
     private static List<Integer> idKnownWords = new ArrayList<>();
     private android.os.Handler handler;
-    private GoogleDriveUpdate googleDriveUpdate;
     private GoogleDriveConnection googleDriveConnection;
 
     @Override
@@ -90,7 +91,7 @@ public class MainActivity extends AppCompatActivity
         switch (requestCode) {
             case REQUEST_CODE_SIGN_IN:
                 if (resultCode == Activity.RESULT_OK && resultData != null) {
-                    googleDriveConnection.handleSignInResult(resultData);
+                    googleDriveConnection.handleSignInResult(resultData,getActualCsvFile());
                 }
                 break;
 
@@ -99,6 +100,7 @@ public class MainActivity extends AppCompatActivity
                     Uri uri = resultData.getData();
                     if (uri != null) {
                         //openFileFromFilePicker(uri);
+                        System.out.println("Open Document");
                     }
                 }
                 break;
@@ -120,6 +122,7 @@ public class MainActivity extends AppCompatActivity
         sharedPreferences = getSharedPreferences(languageModePreference, Activity.MODE_PRIVATE);
         sharedPreferences = getSharedPreferences(languagePreference, Activity.MODE_PRIVATE);
         sharedPreferences = getSharedPreferences(dateModificationPreference, Activity.MODE_PRIVATE);
+        sharedPreferences = getSharedPreferences(datebaseFileIdPreference, Activity.MODE_PRIVATE);
 
         actualLanguageDataBase = sharedPreferences.getString(languagePreference, engLanguageDatabase);
 
@@ -160,11 +163,8 @@ public class MainActivity extends AppCompatActivity
         mViewPager.setAdapter(mSectionsPagerAdapter);
         activity = this;
 
-//        googleDriveUpdate = new GoogleDriveUpdate(activity, getActualCsvFile());
         googleDriveConnection = new GoogleDriveConnection();
         googleDriveConnection.requestSignIn();
-
-
 
     }
 
@@ -232,13 +232,14 @@ public class MainActivity extends AppCompatActivity
         idKnownWords = dbFlashcard.IdFlashcard(GetActualCategory(),showKnownWords);
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
         mViewPager.setAdapter(mSectionsPagerAdapter);
+        googleDriveConnection = new GoogleDriveConnection();
+        googleDriveConnection.requestSignIn();
     }
 
     @Override
     protected void onResume()
     {
         super.onResume();
-        //googleDriveHelper.onResume();
         Log.e(TAG,"Resume app");
     }
 
@@ -262,7 +263,6 @@ public class MainActivity extends AppCompatActivity
         getMenuInflater().inflate(R.menu.menu_main, menu);
         itemSetting = menu.findItem(R.id.action_editWord);
         itemSetting.setVisible(false);
-
 
         return true;
     }
@@ -477,8 +477,6 @@ public class MainActivity extends AppCompatActivity
                 @Override
                 public void onClick(View v) {
 
-
-
                     if (tWord2.getVisibility() == View.VISIBLE) {
                         tWord2.setVisibility(View.INVISIBLE);
                         tSentence2.setVisibility(View.INVISIBLE);
@@ -493,7 +491,6 @@ public class MainActivity extends AppCompatActivity
                     preferencesEditor.commit();
                 }
             });
-
 
             cbKnown.setOnClickListener(new View.OnClickListener() {
                 @Override
