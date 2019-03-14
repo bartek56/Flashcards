@@ -74,6 +74,7 @@ public class MainActivity extends AppCompatActivity
     public static final String languageModePlEng = "Pl-Eng";
     public static final String dateModificationPreference = "dateModification";
     public static final String datebaseFileIdPreference = "datavaseFileId";
+    public static final String datebaseFolderIdPreference = "databaseFolderId";
 
     private static int randomNumbers[];
     private static SectionsPagerAdapter mSectionsPagerAdapter;

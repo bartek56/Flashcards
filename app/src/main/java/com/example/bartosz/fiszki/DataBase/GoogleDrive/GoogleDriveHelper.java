@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayDeque;
+import java.util.Collections;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.Executor;
@@ -22,6 +23,7 @@ import java.util.concurrent.Executors;
 
 import static com.example.bartosz.fiszki.MainActivity.activity;
 import static com.example.bartosz.fiszki.MainActivity.datebaseFileIdPreference;
+import static com.example.bartosz.fiszki.MainActivity.datebaseFolderIdPreference;
 import static com.example.bartosz.fiszki.MainActivity.sharedPreferences;
 
 /**
@@ -82,8 +84,14 @@ public class GoogleDriveHelper {
         return Tasks.call(mExecutor,() -> {
 
             String fileId = sharedPreferences.getString(datebaseFileIdPreference, "454");
+            String folderId = sharedPreferences.getString(datebaseFolderIdPreference, "454");
+
+            System.out.println(fileId);
+            System.out.println(folderId);
+
             File metadata = new File()
                     .setName(fileName);
+                    //.setParents(Collections.singletonList(folderId));
 
             File googleFile=null;
             try {
@@ -93,7 +101,9 @@ public class GoogleDriveHelper {
                     wholeString+=line;
                 }
                 ByteArrayContent contentStream = ByteArrayContent.fromString("text/plain",wholeString);
-                googleFile = driveService.files().update(fileId,metadata,contentStream).execute();
+                //googleFile = driveService.files().update(fileId,metadata,contentStream).setAddParents(folderId).setRemoveParents(folderId).setFields("id, parents").execute();
+                googleFile = driveService.files().update(fileId,metadata,contentStream).setFields("id, parents").execute();
+
 
             } catch (IOException e) {
                 e.printStackTrace();
@@ -114,7 +124,7 @@ public class GoogleDriveHelper {
         return Tasks.call(mExecutor,() -> {
 
             String fileId = sharedPreferences.getString(datebaseFileIdPreference, "454");
-
+            String folderId = sharedPreferences.getString(datebaseFolderIdPreference, "454");
             InputStream inpout = driveService.files().get(fileId).executeMediaAsInputStream();
 
             BufferedReader reader = new BufferedReader(new InputStreamReader(inpout));

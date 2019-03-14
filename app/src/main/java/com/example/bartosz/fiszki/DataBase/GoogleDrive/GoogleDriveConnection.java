@@ -40,6 +40,7 @@ public class GoogleDriveConnection {
     public static final int REQUEST_CODE_OPEN_DOCUMENT = 2;
 
     private String databaseFileId;
+    private String databaseFolderId;
     public static Drive driveService;
     private final Executor mExecutor = Executors.newSingleThreadExecutor();
 
@@ -51,6 +52,9 @@ public class GoogleDriveConnection {
                 new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                         .requestEmail()
                         .requestScopes(new Scope(DriveScopes.DRIVE))
+                        .requestScopes(new Scope(DriveScopes.DRIVE_FILE))
+                        .requestScopes(new Scope(DriveScopes.DRIVE_METADATA))
+                        //.requestScopes(new Scope(DriveScopes.DRIVE_APPDATA))
                         .build();
         GoogleSignInClient client = GoogleSignIn.getClient(activity, signInOptions);
 
@@ -65,7 +69,7 @@ public class GoogleDriveConnection {
                     // Use the authenticated account to sign in to the Drive service.
                     GoogleAccountCredential credential =
                             GoogleAccountCredential.usingOAuth2(
-                                    activity, Collections.singleton(DriveScopes.DRIVE_FILE));
+                                    activity, Collections.singleton(DriveScopes.DRIVE));
                     credential.setSelectedAccount(googleAccount.getAccount());
                     Drive googleDriveService =
                             new Drive.Builder(
@@ -76,39 +80,86 @@ public class GoogleDriveConnection {
                                     .build();
 
                     driveService = googleDriveService;
-                    checkIfFileExist(fileName);
+                    checkIfFolderExist(fileName);
 
                 }).addOnFailureListener(exception -> Log.e(TAG, "Unable to sign in.", exception));
     }
 
+    private void checkIfFolderExist(String fileName) {
 
+            Log.d(TAG, "Querying for folders.");
 
-    private void checkIfFileExist(String fileName) {
-
-            Log.d(TAG, "Querying for files.");
-
-            queryFiles()
+            queryFolders()
                     .addOnSuccessListener(fileList -> {
                         for (File file : fileList.getFiles()) {
-                            System.out.println(file.getName());
-                            if(file.getName().equals(fileName))
+                            Log.d(TAG, "folder " +file.getName());
+                            if(file.getName().equals("flashcards"))
                             {
-                                databaseFileId = file.getId();
-                                Log.d(TAG, "file exist "+databaseFileId);
+                                databaseFolderId = file.getId();
+                                //DateTime date = file.getModifiedByMeTime();
+//                                System.out.println( "date: " + date.toString());
+                                Log.d(TAG, "folder exist " + databaseFolderId);
+
                                 SharedPreferences.Editor preferencesEditor = sharedPreferences.edit();
-                                preferencesEditor.putString(MainActivity.datebaseFileIdPreference,databaseFileId);
+                                preferencesEditor.putString(MainActivity.datebaseFolderIdPreference,databaseFolderId);
                                 preferencesEditor.commit();
+                                checkIfFileExist(fileName);
+
                                 break;
                             }
                         }
 
-                        if(databaseFileId==null)
+                        if(databaseFolderId==null)
                         {
-                            Log.d(TAG, "file doesn't exist");
-                            createFileHelper(fileName);
+                            Log.d(TAG, "folder doesn't exist");
+                            createFolderHelper(fileName);
                         }
                     })
                     .addOnFailureListener(exception -> Log.e(TAG, "Unable to query files.", exception));
+
+    }
+
+
+    private void checkIfFileExist(String fileName) {
+
+        Log.d(TAG, "Querying for files");
+
+        queryFiles()
+                .addOnSuccessListener(fileList -> {
+                    for (File file : fileList.getFiles()) {
+                        Log.d(TAG, "file " +file.getName());
+                        if(file.getName().equals(fileName))
+                        {
+                            databaseFileId = file.getId();
+                            //DateTime date = file.getModifiedByMeTime();
+//                                System.out.println( "date: " + date.toString());
+                            Log.d(TAG, "file exist " + databaseFileId);
+                            SharedPreferences.Editor preferencesEditor = sharedPreferences.edit();
+                            preferencesEditor.putString(MainActivity.datebaseFileIdPreference,databaseFileId);
+                            preferencesEditor.commit();
+                            //System.out.println( "date: " + date);
+                            break;
+                        }
+                    }
+
+                    if(databaseFileId==null)
+                    {
+                        Log.d(TAG, "file doesn't exist");
+
+                        createFile(fileName)
+                                .addOnSuccessListener(fileId -> Log.d(TAG, fileId))
+                                .addOnFailureListener(exception ->
+                                        Log.e(TAG, "Couldn't create file.", exception));
+                    }
+                })
+                .addOnFailureListener(exception -> Log.e(TAG, "Unable to query files.", exception));
+
+    }
+
+
+    public Task<FileList> queryFolders() {
+        return Tasks.call(mExecutor, () ->
+                driveService.files().list().setSpaces("drive").setQ("mimeType='application/vnd.google-apps.folder'").execute());
 
     }
 
@@ -117,23 +168,68 @@ public class GoogleDriveConnection {
                 driveService.files().list().setSpaces("drive").execute());
     }
 
-    public void createFileHelper(String fileName) {
-
-            Log.d(TAG, "Creating a file.");
-
-            createFile(fileName)
-                    .addOnSuccessListener(fileId -> Log.d(TAG, fileId))
-                    .addOnFailureListener(exception ->
-                            Log.e(TAG, "Couldn't create file.", exception));
-
+    public void updateId(String folderId)
+    {
+        SharedPreferences.Editor preferencesEditor = sharedPreferences.edit();
+        preferencesEditor.putString(MainActivity.datebaseFileIdPreference,folderId);
+        preferencesEditor.commit();
     }
 
+    public void createFolderHelper(String fileName) {
 
-    public Task<String> createFile(String fileName) {
+            createFolder("flashcards")
+                    .addOnSuccessListener(
+                            folderId -> createFile(fileName)
+                                .addOnSuccessListener(fileId -> Log.d(TAG, fileId))
+                                .addOnFailureListener(exception ->
+                                Log.e(TAG, "Couldn't create file.", exception)))
+                    .addOnFailureListener(exception -> Log.e(TAG, "Couldn't create folder.", exception));
+    }
+
+    public Task<String> createFolder(String fileName) {
+
+        Log.d(TAG, "Creating a folder.");
         return Tasks.call(mExecutor,() -> {
 
             File metadata = new File()
                     .setParents(Collections.singletonList("root"))
+                    .setMimeType("application/vnd.google-apps.folder")
+                    .setName(fileName);
+
+            File googleFile=null;
+            try {
+                //String content = "a";
+                //ByteArrayContent contentStream = ByteArrayContent.fromString("text/plain", content);
+
+                googleFile = driveService.files().create(metadata).execute();
+
+                Log.d(TAG, "Created folder id: " +googleFile.getId());
+
+                databaseFolderId = googleFile.getId();
+                SharedPreferences.Editor preferencesEditor = sharedPreferences.edit();
+                preferencesEditor.putString(MainActivity.datebaseFolderIdPreference,googleFile.getId());
+                preferencesEditor.commit();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            if (googleFile == null) {
+                throw new IOException("Null result when requesting file creation.");
+            }
+
+            return googleFile.getId();
+        });
+    }
+
+
+    public Task<String> createFile(String fileName) {
+
+        Log.d(TAG, "Creating a file.");
+
+        return Tasks.call(mExecutor,() -> {
+
+            File metadata = new File()
+                    .setParents(Collections.singletonList(databaseFolderId))
                     .setMimeType("text/plain")
                     .setName(fileName);
 
@@ -142,6 +238,7 @@ public class GoogleDriveConnection {
                 String content = "a";
                 ByteArrayContent contentStream = ByteArrayContent.fromString("text/plain", content);
                 googleFile = driveService.files().create(metadata, contentStream).execute();
+                Log.d(TAG, "Created file, id: " +googleFile.getId());
             } catch (IOException e) {
                 e.printStackTrace();
             }
