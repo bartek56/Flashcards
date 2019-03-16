@@ -1,17 +1,32 @@
 package com.example.bartosz.fiszki.DataBase.GoogleDrive;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Handler;
 import android.util.Log;
+import android.widget.Toast;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayDeque;
 import java.util.Collections;
+import java.util.Queue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 import static com.example.bartosz.fiszki.MainActivity.activity;
+import static com.example.bartosz.fiszki.MainActivity.actualLanguageDataBase;
+import static com.example.bartosz.fiszki.MainActivity.datebaseFileIdPreference;
+import static com.example.bartosz.fiszki.MainActivity.datebaseFolderIdPreference;
+import static com.example.bartosz.fiszki.MainActivity.dbFlashcard;
+import static com.example.bartosz.fiszki.MainActivity.getActualCsvFile;
 import static com.example.bartosz.fiszki.MainActivity.sharedPreferences;
 
+import com.example.bartosz.fiszki.DataBase.SQLite.FlashcardHelper;
 import com.example.bartosz.fiszki.MainActivity;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
@@ -35,6 +50,7 @@ import com.google.api.services.drive.model.FileList;
 public class GoogleDriveConnection {
 
     private static final String TAG = "GoogleDriveConnection";
+    private Handler handler;
 
     public static final int REQUEST_CODE_SIGN_IN = 1;
     public static final int REQUEST_CODE_OPEN_DOCUMENT = 2;
@@ -88,7 +104,6 @@ public class GoogleDriveConnection {
     private void checkIfFolderExist(String fileName) {
 
             Log.d(TAG, "Querying for folders.");
-
             queryFolders()
                     .addOnSuccessListener(fileList -> {
                         for (File file : fileList.getFiles()) {
@@ -99,12 +114,10 @@ public class GoogleDriveConnection {
                                 //DateTime date = file.getModifiedByMeTime();
 //                                System.out.println( "date: " + date.toString());
                                 Log.d(TAG, "folder exist " + databaseFolderId);
-
                                 SharedPreferences.Editor preferencesEditor = sharedPreferences.edit();
                                 preferencesEditor.putString(MainActivity.datebaseFolderIdPreference,databaseFolderId);
                                 preferencesEditor.commit();
                                 checkIfFileExist(fileName);
-
                                 break;
                             }
                         }
@@ -118,7 +131,6 @@ public class GoogleDriveConnection {
                     .addOnFailureListener(exception -> Log.e(TAG, "Unable to query files.", exception));
 
     }
-
 
     private void checkIfFileExist(String fileName) {
 
@@ -138,6 +150,8 @@ public class GoogleDriveConnection {
                             preferencesEditor.putString(MainActivity.datebaseFileIdPreference,databaseFileId);
                             preferencesEditor.commit();
                             //System.out.println( "date: " + date);
+                            checkIfDatabaseWasModified();
+
                             break;
                         }
                     }
@@ -156,11 +170,9 @@ public class GoogleDriveConnection {
 
     }
 
-
     public Task<FileList> queryFolders() {
         return Tasks.call(mExecutor, () ->
                 driveService.files().list().setSpaces("drive").setQ("mimeType='application/vnd.google-apps.folder'").execute());
-
     }
 
     public Task<FileList> queryFiles() {
@@ -221,7 +233,6 @@ public class GoogleDriveConnection {
         });
     }
 
-
     public Task<String> createFile(String fileName) {
 
         Log.d(TAG, "Creating a file.");
@@ -249,6 +260,41 @@ public class GoogleDriveConnection {
 
             return googleFile.getId();
         });
+    }
+
+    public Task<String> checkIfDatabaseWasModified()
+    {
+        return Tasks.call(mExecutor,() -> {
+
+            String fileId = sharedPreferences.getString(datebaseFileIdPreference, "454");
+            InputStream inpout = driveService.files().get(fileId).executeMediaAsInputStream();
+
+            BufferedReader reader = new BufferedReader(new InputStreamReader(inpout));
+
+            String line;
+
+            line = reader.readLine();
+            if(line.contains("update"))
+            {
+                System.out.println("here");
+                //Toast.makeText(activity, "here", Toast.LENGTH_LONG).show();
+
+                GoogleDriveHelper googleDriveHelper = new GoogleDriveHelper(GoogleDriveConnection.driveService);
+
+                handler.sendEmptyMessage(1);
+
+            }
+
+            reader.close();
+            inpout.close();
+
+            return "dfd";
+        });
+
+    }
+
+    public void setHandler(Handler handler) {
+        this.handler = handler;
     }
 
 }

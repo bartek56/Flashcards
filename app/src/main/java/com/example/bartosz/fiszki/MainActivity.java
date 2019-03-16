@@ -164,7 +164,41 @@ public class MainActivity extends AppCompatActivity
         mViewPager.setAdapter(mSectionsPagerAdapter);
         activity = this;
 
+
+        class handler2 extends Handler{
+            @Override
+            public void handleMessage(Message msg) {
+                super.handleMessage(msg);
+
+
+                if(msg.what==1)
+                {
+                    GoogleDriveHelper googleDriveHelper = new GoogleDriveHelper(GoogleDriveConnection.driveService);
+                    AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.activity);
+                    builder.setTitle("Słówka były edytowane z innego urządzenia, czy chesz aktualizować ?");
+                    googleDriveHelper.RemoveFirstLineInFile(getActualCsvFile());
+                    builder.setPositiveButton("TAK", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id)
+                        {
+                            dbFlashcard.DeleteAllFlashcards();
+                            dbFlashcard = new FlashcardHelper(activity,actualLanguageDataBase);
+
+                            googleDriveHelper.ReadFlashcardsHelper(getActualCsvFile());
+                            //dialog.dismiss();
+                        }
+                    });
+
+                    builder.setNegativeButton("NIE", null);
+                    AlertDialog dialog = builder.create();
+                    dialog.show();
+
+                }
+            }
+        }
+
         googleDriveConnection = new GoogleDriveConnection();
+        handler = new handler2();
+        googleDriveConnection.setHandler(handler);
         googleDriveConnection.requestSignIn();
 
     }

@@ -78,7 +78,6 @@ public class GoogleDriveHelper {
     }
 
 
-
     public Task<String> SaveFlashcards(String fileName)
     {
         return Tasks.call(mExecutor,() -> {
@@ -119,6 +118,50 @@ public class GoogleDriveHelper {
     }
 
 
+    public Task<String> RemoveFirstLineInFile(String fileName)
+    {
+        return Tasks.call(mExecutor,() -> {
+
+            String fileId = sharedPreferences.getString(datebaseFileIdPreference, "454");
+            String folderId = sharedPreferences.getString(datebaseFolderIdPreference, "454");
+            InputStream inpout = driveService.files().get(fileId).executeMediaAsInputStream();
+
+            BufferedReader reader = new BufferedReader(new InputStreamReader(inpout));
+
+            String allText = "";
+            String category = "inne";
+            int idFlashcard = 0;
+            int columnNumber = 0;
+
+            String line;
+            reader.readLine();
+
+            String wholeString="";
+
+            while ((line = reader.readLine()) != null) {
+                //System.out.println(line);
+                wholeString+=line;
+                wholeString+="\n";
+            }
+
+
+
+            File metadata = new File()
+                    .setName(fileName);
+            //.setParents(Collections.singletonList(folderId));
+
+            File googleFile=null;
+            ByteArrayContent contentStream = ByteArrayContent.fromString("text/plain",wholeString);
+            //googleFile = driveService.files().update(fileId,metadata,contentStream).setAddParents(folderId).setRemoveParents(folderId).setFields("id, parents").execute();
+            googleFile = driveService.files().update(fileId,metadata,contentStream).setFields("id, parents").execute();
+
+
+
+                return "g";
+        });
+
+    }
+
     public Task<String> ReadFlashcards()
     {
         return Tasks.call(mExecutor,() -> {
@@ -143,8 +186,10 @@ public class GoogleDriveHelper {
             Queue<Integer> idFlashcardQueue = new ArrayDeque<Integer>();
             Queue<Integer> flashcardIsKnownQueue = new ArrayDeque<Integer>();
 
+
             while ((line = reader.readLine()) != null) {
                 System.out.println(line);
+
                 for (char ch : line.toCharArray()) {
                     if (ch == '~') {
                         columnNumber++;
@@ -195,8 +240,5 @@ public class GoogleDriveHelper {
 
             return "dfd";
         });
-
     }
-
-
 }
