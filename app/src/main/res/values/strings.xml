@@ -34,7 +34,7 @@
     <string name="german">niemiecki</string>
 
     <string name="section_format">Hello World from section: %1$d</string>
-    <string name="title_activity_backup">BackupActivity</string>
+    <string name="title_activity_backup">Backup</string>
     <string name="last_synchorization">Ostatnia synchronizacja</string>
 
 

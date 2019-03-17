@@ -22,23 +22,7 @@ public class FlashcardHelper extends Database {
     private Context context;
     public static String FILENAME=null;
 
-/*
-    @Override
-    public void onCreate(SQLiteDatabase db) {
-        super.onCreate(db);
-        Flashcard flashcard = null;
-        switch (MainActivity.actualLanguageDataBase)
-        {
-            case MainActivity.engLanguageDatabase: flashcard = new Flashcard(1, "Hello", "Cześć", "", "");break;
-            case MainActivity.deLanguageDatabase: flashcard = new Flashcard(1,"Hallo", "Cześć", "",""); break;
-            case MainActivity.frLanguageDatabase: flashcard = new Flashcard(1,"Salut!", "Cześć", "",""); break;
-        }
-        AddFlashcard(flashcard);
-        int id = GetIdEnglishWord(flashcard.getEngWord());
-        AddFlashcardToCategory("inne",id);
 
-    }
-*/
     public FlashcardHelper(Context context, String DatabaseFileName) {
         super(context,DatabaseFileName);
         FILENAME = DatabaseFileName;
@@ -196,7 +180,6 @@ public class FlashcardHelper extends Database {
             {
                 while(cursor.moveToNext())
                 {
-                    //idKnownWords.add(cursor.getInt(0));
                     Flashcard flashcard = GetFlashcard(cursor.getInt(0));
                     String flachcard = category + "~" +
                             flashcard.getEngWord() + "~"+
@@ -207,12 +190,8 @@ public class FlashcardHelper extends Database {
                     list.add(flachcard);
                 }
             }
-
         }
         db.close();
-        //db.setTransactionSuccessful();
-        //db.endTransaction();
-
 
         return list;
     }
@@ -244,19 +223,9 @@ public class FlashcardHelper extends Database {
         db.close();
     }
 
-    public void DeleteAllFlashcards(){
-        // brak pętli która zwraca nazwy tabel
-        /*
-        SQLiteDatabase db = getWritableDatabase();
-        db.delete("flashcard",null,null);
-        SQLiteDatabase db2 = getWritableDatabase();
-        db2.delete("inne",null,null);
-        */
+    public void DeleteAllFlashcards()
+    {
         context.deleteDatabase(FILENAME);
-        //SQLiteDatabase db = getWritableDatabase();
-        //onCreate(db);
-
-
     }
 
 
@@ -360,7 +329,6 @@ public class FlashcardHelper extends Database {
     public List<String> GetCategoriesList() {
         List<String> categoryList = new ArrayList<String>();
 
-        String[] columns = {"idFlashcard"};
         SQLiteDatabase db = getReadableDatabase();
 
         Cursor cursor = db.rawQuery("SELECT name FROM sqlite_master WHERE type='table'", null);
@@ -379,7 +347,6 @@ public class FlashcardHelper extends Database {
     public List<String> GetCategoriesListWithoutOther() {
         List<String> categoryList = new ArrayList<String>();
 
-        String[] columns = {"idFlashcard"};
         SQLiteDatabase db = getReadableDatabase();
 
         Cursor cursor = db.rawQuery("SELECT name FROM sqlite_master WHERE type='table'", null);
@@ -441,18 +408,4 @@ public class FlashcardHelper extends Database {
         db.close();
     }
 
-
-    /*
-    @Override
-    public void onCreate(SQLiteDatabase db) {
-        super.onCreate(db);
-        Flashcard flashcard;
-        switch (MainActivity.actualLanguageDataBase)
-        {
-            case MainActivity.engLanguageDatabase: flashcard = new Flashcard(1,"Hello", "Cześć", "",""); AddFlashcard(flashcard);break;
-            case MainActivity.deLanguageDatabase: flashcard = new Flashcard(1,"Hallo", "Cześć", "",""); AddFlashcard(flashcard);break;
-            case MainActivity.frLanguageDatabase: flashcard = new Flashcard(1,"Salut!", "Cześć", "",""); AddFlashcard(flashcard);break;
-        }
-    }
-    */
 }

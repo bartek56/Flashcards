@@ -1,16 +1,11 @@
 package com.example.bartosz.fiszki;
 
-
-
-
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
@@ -36,9 +31,6 @@ import android.widget.Toast;
 
 import com.example.bartosz.fiszki.DataBase.GoogleDrive.GoogleDriveConnection;
 import com.example.bartosz.fiszki.DataBase.GoogleDrive.GoogleDriveHelper;
-import com.example.bartosz.fiszki.DataBase.GoogleDrive.GoogleDriveRead;
-import com.example.bartosz.fiszki.DataBase.GoogleDrive.GoogleDriveUpdate;
-import com.example.bartosz.fiszki.DataBase.GoogleDrive.GoogleDriveWrite;
 import com.example.bartosz.fiszki.DataBase.SQLite.FlashcardHelper;
 import com.example.bartosz.fiszki.DataBase.SQLite.Tables.Flashcard;
 import com.example.bartosz.fiszki.DataBase.SQLite.RandomNumber;
@@ -133,14 +125,36 @@ public class MainActivity extends AppCompatActivity
 
         switch (actualLanguageDataBase)
         {
-            case engLanguageDatabase: setTitle("Fiszki Angielski "+actualCategory); break;
-            case frLanguageDatabase: setTitle("Fiszki Francuski "+actualCategory); break;
-            case deLanguageDatabase: setTitle("Fiszki Niemiecki "+actualCategory); break;
+            case engLanguageDatabase: setTitle("Flashcards English "+actualCategory); break;
+            case frLanguageDatabase: setTitle("Flashcards French "+actualCategory); break;
+            case deLanguageDatabase: setTitle("Flashcards German "+actualCategory); break;
         }
 
         countFlashcards1 = dbFlashcard.CountFlashcard(actualCategory,sharedPreferences.getBoolean(showKnownWordsPreference,true));
         if (countFlashcards1 == 0)
+        {
             countFlashcards1 = 1;
+            Flashcard flashcard = null;
+
+
+            if(actualLanguageDataBase==engLanguageDatabase)
+            {
+                flashcard = new Flashcard(1,"Hello", "Cześć","Hello, this is the Flashcard application" ,"Cześć, to jest aplikacja Fiszki");
+            }
+            else if(actualLanguageDataBase==deLanguageDatabase)
+            {
+                flashcard = new Flashcard(1,"Hallo", "Cześć","Hallo, das ist die Fiszki-Anwendung", "Cześć, to jest aplikacja Fiszki");
+            }
+            else if(actualLanguageDataBase==frLanguageDatabase)
+            {
+                flashcard = new Flashcard(1,"Bonjour", "Cześć","Bonjour, voici l'application Fiszki" ,"Cześć, to jest aplikacja Fiszki");
+            }
+
+
+            MainActivity.dbFlashcard.AddFlashcard(flashcard);
+            int id = MainActivity.dbFlashcard.GetIdEnglishWord(flashcard.getEngWord());
+            MainActivity.dbFlashcard.AddFlashcardToCategory(actualCategory,id);
+        }
 
         randomNumbers = new int[countFlashcards1];
 
@@ -174,8 +188,10 @@ public class MainActivity extends AppCompatActivity
                 if(msg.what==1)
                 {
                     GoogleDriveHelper googleDriveHelper = new GoogleDriveHelper(GoogleDriveConnection.driveService);
+                    googleDriveHelper.setHandler(handler);
                     AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.activity);
-                    builder.setTitle("Słówka były edytowane z innego urządzenia, czy chesz aktualizować ?");
+                    builder.setTitle("WARNING");
+                    builder.setMessage("Słówka zostały edytowane przez inną aplikacje. Czy chcesz zaktualizować dane ?");
                     googleDriveHelper.RemoveFirstLineInFile(getActualCsvFile());
                     builder.setPositiveButton("TAK", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id)
@@ -184,7 +200,6 @@ public class MainActivity extends AppCompatActivity
                             dbFlashcard = new FlashcardHelper(activity,actualLanguageDataBase);
 
                             googleDriveHelper.ReadFlashcardsHelper(getActualCsvFile());
-                            //dialog.dismiss();
                         }
                     });
 
@@ -192,6 +207,10 @@ public class MainActivity extends AppCompatActivity
                     AlertDialog dialog = builder.create();
                     dialog.show();
 
+                }
+                else if(msg.what==2)
+                {
+                    Update();
                 }
             }
         }
@@ -269,6 +288,7 @@ public class MainActivity extends AppCompatActivity
         mViewPager.setAdapter(mSectionsPagerAdapter);
         googleDriveConnection = new GoogleDriveConnection();
         googleDriveConnection.requestSignIn();
+
     }
 
     @Override
@@ -330,7 +350,6 @@ public class MainActivity extends AppCompatActivity
                 break;
             }
 
-
             case R.id.action_aboutMe: {
                 Intent intent = new Intent(this, AboutMe.class);
                 startActivity(intent);
@@ -344,7 +363,7 @@ public class MainActivity extends AppCompatActivity
                 preferencesEditor.commit();
                 String category=sharedPreferences.getString(actualCategoryDePreference, "inne");
                 //idKnownWords = dbCategory.IdFlashcard(category,sharedPreferences.getBoolean(showKnownWordsPreference, false));
-                setTitle("Fiszki Niemiecki "+category);
+                setTitle("Flashcards German "+category);
                 Update();
 
                 break;
@@ -357,7 +376,7 @@ public class MainActivity extends AppCompatActivity
                 preferencesEditor.commit();
                 String category=sharedPreferences.getString(actualCategoryEngPreference, "inne");
                 //idKnownWords = dbCategory.IdFlashcard(category,sharedPreferences.getBoolean(showKnownWordsPreference, false));
-                setTitle("Fiszki Angielski "+category);
+                setTitle("Flashcards Englisg "+category);
                 Update();
                 break;
             }
@@ -368,8 +387,7 @@ public class MainActivity extends AppCompatActivity
                 preferencesEditor.putString(languagePreference,frLanguageDatabase);
                 preferencesEditor.commit();
                 String category=sharedPreferences.getString(actualCategoryFrPreference, "inne");
-                //idKnownWords = dbCategory.IdFlashcard(category,sharedPreferences.getBoolean(showKnownWordsPreference, false));
-                setTitle("Fiszki Francuski "+category);
+                setTitle("Flashcards French "+category);
                 Update();
                 break;
             }
@@ -396,19 +414,16 @@ public class MainActivity extends AppCompatActivity
 
         @Override
         public Fragment getItem(int position) {
-
             return PlaceholderFragment.newInstance(position + 1);
         }
 
         @Override
         public int getCount() {
-
             return countFlashcards1;
         }
 
         @Override
         public CharSequence getPageTitle(int position) {
-
             return "Word nr" + position;
         }
     }
@@ -499,14 +514,64 @@ public class MainActivity extends AppCompatActivity
                     cbKnown.setChecked(false);
 
             } else {
+
                 actualFlashcardNumber=1;
                 idKnownWords=new ArrayList<>();
                 idKnownWords.add(0);
                 countFlashcards1 = 1;
                 mSectionsPagerAdapter.notifyDataSetChanged();
-                Toast.makeText(getActivity(), "Brak słów, dodaj nowe", Toast.LENGTH_SHORT).show();
-            }
+                //Toast.makeText(getActivity(), "Brak słów, dodaj nowe", Toast.LENGTH_SHORT).show();
 
+
+                Flashcard flashcard = null;
+                if(actualLanguageDataBase==engLanguageDatabase)
+                {
+                    flashcard = new Flashcard(1,"Hello", "Cześć","Hello, this is the Flashcard application" ,"Cześć, to jest aplikacja Fiszki");
+                }
+                if(actualLanguageDataBase==deLanguageDatabase)
+                {
+                    flashcard = new Flashcard(1,"Hallo", "Cześć","Hallo, das ist die Fiszki-Anwendung", "Cześć, to jest aplikacja Fiszki");
+                }
+                if(actualLanguageDataBase==frLanguageDatabase)
+                {
+                    flashcard = new Flashcard(1,"Bonjour", "Cześć","Bonjour, voici l'application Fiszki" ,"Cześć, to jest aplikacja Fiszki");
+                }
+
+                MainActivity.dbFlashcard.AddFlashcard(flashcard);
+                int id = MainActivity.dbFlashcard.GetIdEnglishWord(flashcard.getEngWord());
+                MainActivity.dbFlashcard.AddFlashcardToCategory(actualCategory,id);
+
+                idKnownWords=new ArrayList<>();
+                idKnownWords.add(0);
+                countFlashcards1 = 1;
+                mSectionsPagerAdapter.notifyDataSetChanged();
+
+                Flashcard flashcard2 = dbFlashcard.GetFlashcard(actualFlashcardNumber);
+
+                if(languageMode.equals(languageModeEngPl))
+                {
+                    tWord1.setText(flashcard2.getEngWord());
+                    tWord2.setText(flashcard2.getPlWord());
+                    tSentence1.setText(flashcard2.getEngSentence());
+                    tSentence2.setText(flashcard2.getPlSentence());
+                }
+                else
+                {
+                    tWord1.setText(flashcard2.getPlWord());
+                    tWord2.setText(flashcard2.getEngWord());
+                    tSentence1.setText(flashcard2.getPlSentence());
+                    tSentence2.setText(flashcard2.getEngSentence());
+                }
+
+                tId.setText(Integer.toString(flashcard2.getId()));
+
+
+                if (dbFlashcard.GetKnow(actCategory, flashcard2.getId()))
+                    cbKnown.setChecked(true);
+                else
+                    cbKnown.setChecked(false);
+
+            }
 
             bShow.setOnClickListener(new View.OnClickListener() {
                 @Override

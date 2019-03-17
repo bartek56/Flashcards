@@ -1,5 +1,6 @@
 package com.example.bartosz.fiszki.DataBase.GoogleDrive;
 
+import android.os.Handler;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -33,6 +34,7 @@ import static com.example.bartosz.fiszki.MainActivity.sharedPreferences;
 public class GoogleDriveHelper {
 
     private Drive driveService;
+    private Handler handler;
     private final Executor mExecutor = Executors.newSingleThreadExecutor();
     private final String TAG = "GoogleDriveHelper";
     public GoogleDriveHelper(Drive driveService)
@@ -50,15 +52,18 @@ public class GoogleDriveHelper {
                 {
                     Log.d(TAG, fileId);
                     Toast.makeText(activity, "Wczytano z Google Drive", Toast.LENGTH_LONG).show();
+                    if(handler!=null)
+                    {
+                        handler.sendEmptyMessage(2);
+                    }
+
                 })
                 .addOnFailureListener(exception ->
                 {
                     Log.e(TAG, "Couldn't read file.", exception);
                     Toast.makeText(activity, "Błąd przy wczytywaniu", Toast.LENGTH_LONG).show();
                 });
-
     }
-
 
     public void SaveFlashcardsHelper(String fileName) {
 
@@ -69,6 +74,7 @@ public class GoogleDriveHelper {
                 {
                     Log.d(TAG, fileId);
                     Toast.makeText(activity, "Zapisano na Google Drive", Toast.LENGTH_LONG).show();
+
                 })
                 .addOnFailureListener(exception ->
                 {
@@ -90,7 +96,6 @@ public class GoogleDriveHelper {
 
             File metadata = new File()
                     .setName(fileName);
-                    //.setParents(Collections.singletonList(folderId));
 
             File googleFile=null;
             try {
@@ -100,9 +105,8 @@ public class GoogleDriveHelper {
                     wholeString+=line;
                 }
                 ByteArrayContent contentStream = ByteArrayContent.fromString("text/plain",wholeString);
-                //googleFile = driveService.files().update(fileId,metadata,contentStream).setAddParents(folderId).setRemoveParents(folderId).setFields("id, parents").execute();
-                googleFile = driveService.files().update(fileId,metadata,contentStream).setFields("id, parents").execute();
 
+                googleFile = driveService.files().update(fileId,metadata,contentStream).setFields("id, parents").execute();
 
             } catch (IOException e) {
                 e.printStackTrace();
@@ -128,34 +132,21 @@ public class GoogleDriveHelper {
 
             BufferedReader reader = new BufferedReader(new InputStreamReader(inpout));
 
-            String allText = "";
-            String category = "inne";
-            int idFlashcard = 0;
-            int columnNumber = 0;
-
             String line;
             reader.readLine();
 
             String wholeString="";
 
             while ((line = reader.readLine()) != null) {
-                //System.out.println(line);
                 wholeString+=line;
                 wholeString+="\n";
             }
 
-
-
             File metadata = new File()
                     .setName(fileName);
-            //.setParents(Collections.singletonList(folderId));
 
-            File googleFile=null;
             ByteArrayContent contentStream = ByteArrayContent.fromString("text/plain",wholeString);
-            //googleFile = driveService.files().update(fileId,metadata,contentStream).setAddParents(folderId).setRemoveParents(folderId).setFields("id, parents").execute();
-            googleFile = driveService.files().update(fileId,metadata,contentStream).setFields("id, parents").execute();
-
-
+            driveService.files().update(fileId,metadata,contentStream).setFields("id, parents").execute();
 
                 return "g";
         });
@@ -167,10 +158,9 @@ public class GoogleDriveHelper {
         return Tasks.call(mExecutor,() -> {
 
             String fileId = sharedPreferences.getString(datebaseFileIdPreference, "454");
-            String folderId = sharedPreferences.getString(datebaseFolderIdPreference, "454");
-            InputStream inpout = driveService.files().get(fileId).executeMediaAsInputStream();
+            InputStream input = driveService.files().get(fileId).executeMediaAsInputStream();
 
-            BufferedReader reader = new BufferedReader(new InputStreamReader(inpout));
+            BufferedReader reader = new BufferedReader(new InputStreamReader(input));
 
             String allText = "";
             String category = "inne";
@@ -233,12 +223,16 @@ public class GoogleDriveHelper {
             }
 
             reader.close();
-            inpout.close();
+            input.close();
             MainActivity.dbFlashcard.AddFlashcardsFromQueue(engWord, plWord, engSentence, plSentence);
             MainActivity.dbFlashcard.AddFlashcardsToCategoryFromQueue(idFlashcardQueue, flashcardIsKnownQueue, category);
 
 
             return "dfd";
         });
+    }
+
+    public void setHandler(Handler handler) {
+        this.handler = handler;
     }
 }

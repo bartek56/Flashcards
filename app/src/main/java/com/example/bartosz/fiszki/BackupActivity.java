@@ -3,18 +3,12 @@ package com.example.bartosz.fiszki;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.bartosz.fiszki.DataBase.GoogleDrive.GoogleDriveConnection;
 import com.example.bartosz.fiszki.DataBase.GoogleDrive.GoogleDriveHelper;
-import com.example.bartosz.fiszki.DataBase.GoogleDrive.GoogleDriveRead;
-import com.example.bartosz.fiszki.DataBase.GoogleDrive.GoogleDriveWrite;
 import com.example.bartosz.fiszki.DataBase.SQLite.FlashcardHelper;
 
 import static com.example.bartosz.fiszki.MainActivity.activity;

@@ -14,6 +14,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayDeque;
 import java.util.Collections;
+import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -246,8 +247,14 @@ public class GoogleDriveConnection {
 
             File googleFile=null;
             try {
-                String content = "a";
-                ByteArrayContent contentStream = ByteArrayContent.fromString("text/plain", content);
+
+                List<String> list = MainActivity.dbFlashcard.GetAllFlashcards();
+                String wholeString="";
+                for (String line : list) {
+                    wholeString+=line;
+                }
+                ByteArrayContent contentStream = ByteArrayContent.fromString("text/plain",wholeString);
+
                 googleFile = driveService.files().create(metadata, contentStream).execute();
                 Log.d(TAG, "Created file, id: " +googleFile.getId());
             } catch (IOException e) {
