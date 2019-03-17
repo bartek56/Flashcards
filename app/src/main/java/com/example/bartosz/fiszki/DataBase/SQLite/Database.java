@@ -46,7 +46,7 @@ public abstract class Database extends SQLiteOpenHelper {
         }
         catch (SQLiteException ex)
         {
-            System.err.println("onCreate "+" "+file+" "+ ex);
+            Log.e(TAG,"onCreate "+" "+file+" "+ ex);
         }
 
     }

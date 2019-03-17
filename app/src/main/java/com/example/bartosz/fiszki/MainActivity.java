@@ -43,7 +43,6 @@ import static com.example.bartosz.fiszki.DataBase.GoogleDrive.GoogleDriveConnect
 
 public class MainActivity extends AppCompatActivity
 {
-
     public static FlashcardHelper dbFlashcard;
     public static SharedPreferences sharedPreferences;
     private static final String TAG = "Main_Activity";
@@ -67,17 +66,18 @@ public class MainActivity extends AppCompatActivity
     public static final String dateModificationPreference = "dateModification";
     public static final String datebaseFileIdPreference = "datavaseFileId";
     public static final String datebaseFolderIdPreference = "databaseFolderId";
+    public static Activity activity;
+    public static String actualLanguageDataBase;
 
     private static int randomNumbers[];
     private static SectionsPagerAdapter mSectionsPagerAdapter;
     private ViewPager mViewPager;
     private static MenuItem itemSetting;
     private static int countFlashcards1;
-    public static Activity activity;
-    public static String actualLanguageDataBase;
     private static List<Integer> idKnownWords = new ArrayList<>();
     private android.os.Handler handler;
     private GoogleDriveConnection googleDriveConnection;
+    private static int countChanges;
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent resultData) {
@@ -93,7 +93,7 @@ public class MainActivity extends AppCompatActivity
                     Uri uri = resultData.getData();
                     if (uri != null) {
                         //openFileFromFilePicker(uri);
-                        System.out.println("Open Document");
+                        Log.d(TAG,"Open Document");
                     }
                 }
                 break;
@@ -302,7 +302,6 @@ public class MainActivity extends AppCompatActivity
     protected void onStop()
     {
         super.onStop();
-        //googleDriveHelper.onStop();
         Log.e(TAG,"Stop app");
     }
 
@@ -365,7 +364,6 @@ public class MainActivity extends AppCompatActivity
                 //idKnownWords = dbCategory.IdFlashcard(category,sharedPreferences.getBoolean(showKnownWordsPreference, false));
                 setTitle("Flashcards German "+category);
                 Update();
-
                 break;
             }
 
@@ -376,7 +374,7 @@ public class MainActivity extends AppCompatActivity
                 preferencesEditor.commit();
                 String category=sharedPreferences.getString(actualCategoryEngPreference, "inne");
                 //idKnownWords = dbCategory.IdFlashcard(category,sharedPreferences.getBoolean(showKnownWordsPreference, false));
-                setTitle("Flashcards Englisg "+category);
+                setTitle("Flashcards English "+category);
                 Update();
                 break;
             }
@@ -396,10 +394,8 @@ public class MainActivity extends AppCompatActivity
                 Intent intent = new Intent(this, BackupActivity.class);
                 startActivity(intent);
                 break;
-
             }
         }
-
         return super.onOptionsItemSelected(item);
     }
 
@@ -514,14 +510,11 @@ public class MainActivity extends AppCompatActivity
                     cbKnown.setChecked(false);
 
             } else {
-
                 actualFlashcardNumber=1;
                 idKnownWords=new ArrayList<>();
                 idKnownWords.add(0);
                 countFlashcards1 = 1;
                 mSectionsPagerAdapter.notifyDataSetChanged();
-                //Toast.makeText(getActivity(), "Brak słów, dodaj nowe", Toast.LENGTH_SHORT).show();
-
 
                 Flashcard flashcard = null;
                 if(actualLanguageDataBase==engLanguageDatabase)
@@ -595,6 +588,28 @@ public class MainActivity extends AppCompatActivity
             cbKnown.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+
+                    countChanges++;
+                    if(countChanges>5)
+                    {
+                        countChanges=0;
+                        GoogleDriveHelper googleDriveHelper = new GoogleDriveHelper(GoogleDriveConnection.driveService);
+                        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.activity);
+                        builder.setTitle("GRATULACJE");
+                        builder.setMessage("Gratuluje, tworzysz postępy. Czy chcesz zapisać zmiany na Google Drive ?");
+                        googleDriveHelper.RemoveFirstLineInFile(getActualCsvFile());
+                        builder.setPositiveButton("TAK", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id)
+                            {
+                                googleDriveHelper.SaveFlashcardsHelper(getActualCsvFile());
+                                dialog.dismiss();
+                            }
+                        });
+
+                        builder.setNegativeButton("NIE", null);
+                        AlertDialog dialog = builder.create();
+                        dialog.show();
+                    }
                     dbFlashcard.SetKnownWord(actualFlashcardNumber, cbKnown.isChecked());
                 }
             });

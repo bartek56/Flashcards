@@ -56,7 +56,6 @@ public class GoogleDriveHelper {
                     {
                         handler.sendEmptyMessage(2);
                     }
-
                 })
                 .addOnFailureListener(exception ->
                 {
@@ -89,10 +88,6 @@ public class GoogleDriveHelper {
         return Tasks.call(mExecutor,() -> {
 
             String fileId = sharedPreferences.getString(datebaseFileIdPreference, "454");
-            String folderId = sharedPreferences.getString(datebaseFolderIdPreference, "454");
-
-            System.out.println(fileId);
-            System.out.println(folderId);
 
             File metadata = new File()
                     .setName(fileName);
@@ -178,8 +173,6 @@ public class GoogleDriveHelper {
 
 
             while ((line = reader.readLine()) != null) {
-                System.out.println(line);
-
                 for (char ch : line.toCharArray()) {
                     if (ch == '~') {
                         columnNumber++;

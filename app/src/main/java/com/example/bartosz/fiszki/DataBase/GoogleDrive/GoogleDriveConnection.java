@@ -283,13 +283,7 @@ public class GoogleDriveConnection {
             line = reader.readLine();
             if(line.contains("update"))
             {
-                System.out.println("here");
-                //Toast.makeText(activity, "here", Toast.LENGTH_LONG).show();
-
-                GoogleDriveHelper googleDriveHelper = new GoogleDriveHelper(GoogleDriveConnection.driveService);
-
                 handler.sendEmptyMessage(1);
-
             }
 
             reader.close();
